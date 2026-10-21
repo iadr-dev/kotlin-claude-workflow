@@ -1,0 +1,10 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.kotlin/
+captures/
+.claude/settings.local.json
+__pycache__/
+*.pyc

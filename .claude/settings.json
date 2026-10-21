@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew:*)",
+      "Bash(./gradlew.bat:*)",
+      "Bash(gradlew.bat:*)",
+      "Bash(android info:*)",
+      "Bash(android describe:*)",
+      "Bash(android docs:*)",
+      "Bash(android layout:*)",
+      "Bash(android screen:*)",
+      "Bash(android run:*)",
+      "Bash(android emulator list:*)",
+      "Bash(android emulator start:*)",
+      "Bash(android skills list:*)",
+      "Bash(adb devices:*)",
+      "Bash(adb -s * shell input*)",
+      "Bash(adb shell input:*)",
+      "Bash(adb -s * logcat*)",
+      "Bash(adb logcat:*)",
+      "Bash(adb -s * shell getprop*)",
+      "Bash(adb shell getprop:*)",
+      "Bash(adb -s * shell dumpsys*)",
+      "Bash(adb shell dumpsys:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "ask": [
+      "Bash(adb uninstall:*)",
+      "Bash(adb -s * uninstall*)",
+      "Bash(adb shell pm clear:*)",
+      "Bash(adb -s * shell pm clear*)",
+      "Bash(adb shell rm:*)",
+      "Bash(adb -s * shell rm*)",
+      "Bash(adb reboot:*)",
+      "Bash(adb -s * reboot*)",
+      "Bash(android sdk remove:*)",
+      "Bash(android emulator remove:*)",
+      "Bash(git push:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-kotlin.sh\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "kotlin-lsp@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true
+  }
+}
