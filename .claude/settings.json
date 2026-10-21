@@ -14,8 +14,10 @@
       "Bash(adb shell getprop:*)",
       "Bash(adb shell dumpsys:*)",
       "Bash(git status:*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)"
+      "Bash(git diff)",
+      "Bash(git diff --stat)",
+      "Bash(git diff --cached)",
+      "Bash(git log --oneline -20)"
     ],
     "ask": [
       "Bash(adb*install*)",

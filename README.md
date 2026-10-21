@@ -200,9 +200,10 @@ Gradle project exists.
 
 **Permissions:** the shared `.claude/settings.json` pre-approves only read-only
 commands with fixed prefixes (`android info/docs/layout/screen`, `adb devices`,
-`adb logcat`, `git status/diff/log`). Installing, pushing, `pm`, `su`, `settings`,
-`rm`, reboot and `git push` always ask, and `git diff/log --output` is denied
-because it can write files. Rules that can run code or drive a device
+`adb logcat`, `git status`, and a few exact `git diff` / `git log` forms). Open-ended
+`git diff` and `git log` are not pre-approved: Git accepts abbreviated options such
+as `--out=<file>`, so a prefix rule could be used to write files. Installing,
+pushing, `pm`, `su`, `settings`, `rm`, reboot and `git push` always ask. Rules that can run code or drive a device
 (`./gradlew`, `android run`, `adb shell input`) are **not** shared: put them in
 your own git-ignored `.claude/settings.local.json` if you want them
 pre-approved. Claude Code shows a trust notice when a folder pre-approves any
