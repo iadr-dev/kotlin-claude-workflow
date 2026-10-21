@@ -34,6 +34,7 @@ class TasksViewModel(
           tasks = visible.tasks.map { TaskItemUi(it.id.value, it.title, it.isCompleted) },
           hideCompleted = visible.hideCompleted,
           hiddenCount = visible.hiddenCount,
+          completedCount = visible.completedCount,
           draft = draft.text,
           draftError = draft.error,
         )
@@ -62,6 +63,10 @@ class TasksViewModel(
 
   fun onCompletedChange(id: Long, isCompleted: Boolean) {
     viewModelScope.launch { tasks.setCompleted(TaskId(id), isCompleted) }
+  }
+
+  fun onClearCompleted() {
+    viewModelScope.launch { tasks.clearCompleted() }
   }
 
   fun onHideCompletedChange(hide: Boolean) {

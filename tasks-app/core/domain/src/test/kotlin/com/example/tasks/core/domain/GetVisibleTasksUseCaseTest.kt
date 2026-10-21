@@ -38,6 +38,19 @@ class GetVisibleTasksUseCaseTest {
   }
 
   @Test
+  fun reportsCompletedCountRegardlessOfHideSetting() = runTest {
+    val tasks = listOf(open, done, Task(TaskId(3), "done too", isCompleted = true))
+
+    val shown = GetVisibleTasksUseCase(FakeTaskRepository(tasks), FakeSettingsRepository(hideCompleted = false))().first()
+    val hidden = GetVisibleTasksUseCase(FakeTaskRepository(tasks), FakeSettingsRepository(hideCompleted = true))().first()
+
+    assertEquals(2, shown.completedCount)
+    assertEquals(0, shown.hiddenCount)
+    assertEquals(2, hidden.completedCount)
+    assertEquals(2, hidden.hiddenCount)
+  }
+
+  @Test
   fun reactsToSettingChanges() = runTest {
     val settings = FakeSettingsRepository(hideCompleted = true)
     val useCase = GetVisibleTasksUseCase(FakeTaskRepository(listOf(done, open)), settings)

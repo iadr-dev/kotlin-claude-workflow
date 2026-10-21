@@ -27,6 +27,10 @@ internal class TaskLocalDataSource(seed: List<TaskRecord> = emptyList()) {
     records.update { list -> list.map { if (it.id == id) it.copy(completedAtMillis = completedAtMillis) else it } }
   }
 
+  fun deleteCompleted() {
+    records.update { list -> list.filter { it.completedAtMillis == null } }
+  }
+
   fun observe(): Flow<List<TaskRecord>> = records
 }
 

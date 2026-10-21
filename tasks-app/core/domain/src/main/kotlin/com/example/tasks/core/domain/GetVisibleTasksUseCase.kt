@@ -14,10 +14,12 @@ public class GetVisibleTasksUseCase(
   public operator fun invoke(): Flow<VisibleTasks> =
     combine(tasks.observeTasks(), settings.observeHideCompleted()) { all, hideCompleted ->
       val ordered = all.sortedWith(compareBy<Task> { it.isCompleted }.thenBy { it.id.value })
+      val completed = all.count { it.isCompleted }
       VisibleTasks(
         tasks = if (hideCompleted) ordered.filterNot { it.isCompleted } else ordered,
         hideCompleted = hideCompleted,
-        hiddenCount = if (hideCompleted) all.count { it.isCompleted } else 0,
+        hiddenCount = if (hideCompleted) completed else 0,
+        completedCount = completed,
       )
     }
 }
@@ -26,4 +28,6 @@ public data class VisibleTasks(
   val tasks: List<Task>,
   val hideCompleted: Boolean,
   val hiddenCount: Int,
+  /** Completed tasks, whether or not the "hide completed" setting currently hides them. */
+  val completedCount: Int,
 )

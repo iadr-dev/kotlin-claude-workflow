@@ -32,6 +32,10 @@ internal class DefaultTaskRepository(
       withContext(ioDispatcher) { local.updateCompletedAt(id.value, if (isCompleted) clock() else null) }
     }
   }
+
+  override suspend fun clearCompleted() {
+    writes.withLock { withContext(ioDispatcher) { local.deleteCompleted() } }
+  }
 }
 
 internal fun TaskRecord.toDomain(): Task = Task(id = TaskId(id), title = title, isCompleted = completedAtMillis != null)
