@@ -17,6 +17,7 @@ It gives Claude, in one place:
 ## Contents
 
 - [Quick start](#quick-start)
+- [Install into your own project](#install-into-your-own-project)
 - [The workflow](#the-workflow)
 - [Commands you type](#commands-you-type)
 - [What Claude does on its own](#what-claude-does-on-its-own)
@@ -59,6 +60,46 @@ It gives Claude, in one place:
 
 Gradle itself is never installed globally. Always use the project's `./gradlew`.
 Its shared cache is `~/.gradle`.
+
+## Install into your own project
+
+Quick start above is for using this folder as it is. To add the workflow to a
+project you already have, copy it into that project's root. Everything is plain
+files, so the whole team gets it through git.
+
+**Option A: GitHub template (new project).** On the repository page choose
+*Use this template*, then delete `tasks-app/` and the "Sample app" section of
+`CLAUDE.md`.
+
+**Option B: copy into an existing project** (Git Bash, macOS or Linux):
+
+```sh
+git clone https://github.com/<owner>/kotlin-claude-workflow.git /tmp/kcw   # private repo: run `gh auth login` first
+cd /path/to/your-project
+cp -r /tmp/kcw/.claude .
+cp /tmp/kcw/CLAUDE.md .
+cat /tmp/kcw/.gitignore >> .gitignore            # keeps settings.local.json and caches out of git
+cp -n /tmp/kcw/.gitattributes .                  # LF endings for shell scripts and gradlew
+rm -rf /tmp/kcw
+```
+
+Then, in your project:
+
+1. Edit `CLAUDE.md`: delete the "Sample app" section and adjust the build commands to your modules.
+2. Do **not** copy `tasks-app/` or `.github/workflows/ci.yml`; the workflow file is written for the sample app, so write your own that runs your Gradle checks.
+3. Restart Claude Code in the project and accept the plugin prompts from `.claude/settings.json`.
+4. Ask Claude to run `setup-environment` and follow its proposals.
+5. Try it: `/new-feature <a small change>`.
+
+If a `.claude/` folder or `CLAUDE.md` already exists, merge instead of
+overwriting: copy the folders under `.claude/skills` and `.claude/agents`, and
+merge `settings.json` by hand.
+
+**Plugin form (later).** Skills, agents and hooks can also be packaged as a Claude
+plugin (`.claude-plugin/plugin.json` plus a marketplace entry, installed with
+`/plugin install`) so several projects share one updated copy. A plugin cannot
+carry `CLAUDE.md` or permissions, and scripts must use `${CLAUDE_PLUGIN_ROOT}`
+paths, so this repository ships as copyable files for now.
 
 ## The workflow
 
