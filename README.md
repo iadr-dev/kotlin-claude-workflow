@@ -314,8 +314,9 @@ Checked on Windows 11 with Git Bash, Gradle 9.8.2, AGP 9.4.1, Kotlin 2.4.21:
 | `setup-environment` check, `gradle-run`, `build-and-verify`, `run-on-device` on an emulator | tested |
 | `kotlin-architecture`, Kotlin and Compose skills, `kotlin-reviewer` and the four review agents, `android-verifier` | tested |
 | Format hook with ktlint, kotlin-lsp (symbols, cross-module definitions, hover) | tested |
-| `/new-feature` and `/review-pr` run end to end | not yet tested |
-| GitHub skills (`to-plan`, `deliver-spec`, `shepherd`, `run-github-project`, `triage`, `wayfinder`) | not yet tested (need a repository) |
+| `to-plan`, `deliver-spec`, `shepherd`, with CI, two independent reviews and a squash merge (issue #2 to PR #4) | tested on a real GitHub repository |
+| `/new-feature` and `/review-pr` | not yet tested: they only run when you type them, and Claude is blocked from invoking them itself |
+| `run-github-project`, `triage`, `wayfinder`, `setup-issue-tracker` | not yet tested (user-invoked; need a GitHub Project board and labels) |
 | Physical Android device | not yet tested |
 | macOS and Linux | not yet tested (scripts are written to be portable) |
 
