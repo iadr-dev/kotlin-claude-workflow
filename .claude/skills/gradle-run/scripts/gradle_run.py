@@ -58,17 +58,28 @@ def default_root() -> Path:
     return Path(tempfile.gettempdir()) / f"gradle-run{suffix}"
 
 
-def ensure_private_root(root: Path) -> None:
-    """Create the managed root and refuse one that another user or a symlink could control."""
-    root.mkdir(mode=0o700, parents=True, exist_ok=True)
-    info = root.lstat()
+def check_private_root(root: Path) -> None:
+    """Reject an existing root that is a symlink, not a directory, or owned by another user.
+
+    Runs on the unresolved path: resolving first would follow a planted symlink and check its target.
+    """
+    try:
+        info = root.lstat()
+    except FileNotFoundError:
+        return
     if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
         raise ValueError("managed root must be a real directory")
-    if hasattr(os, "getuid"):
-        if info.st_uid != os.getuid():
-            raise ValueError("managed root must be owned by the current user")
-        if info.st_mode & 0o077:
-            os.chmod(root, 0o700)
+    if hasattr(os, "getuid") and info.st_uid != os.getuid():
+        raise ValueError("managed root must be owned by the current user")
+
+
+def ensure_private_root(root: Path) -> None:
+    """Create the managed root with mode 0700, refusing one another user or a symlink could control."""
+    check_private_root(root)
+    root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    check_private_root(root)
+    if hasattr(os, "getuid") and root.lstat().st_mode & 0o077:
+        os.chmod(root, 0o700)
 
 
 def normalize(text: str) -> str:
@@ -93,6 +104,7 @@ def shortened(text: str, max_bytes: int) -> str:
 
 
 def managed_root(root: Path) -> Path:
+    check_private_root(root)
     resolved_root = root.resolve(strict=False)
     temporary_root = Path(tempfile.gettempdir()).resolve()
     try:
@@ -239,8 +251,9 @@ def write_ledger(directory: Path, ledger: dict[str, Any]) -> None:
 
 
 def create_workflow(root: Path) -> int:
-    root = managed_root(root)
+    resolved = managed_root(root)
     ensure_private_root(root)
+    root = resolved
     for _ in range(10):
         workflow = secrets.token_hex(16)
         directory = root / workflow
