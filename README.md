@@ -239,12 +239,16 @@ for this project in your personal, git-ignored `.claude/settings.local.json`.
 the Gradle project when Claude Code starts, so start Claude Code **after** the
 Gradle project exists.
 
-**Permissions:** `.claude/settings.json` pre-approves common read and build
-commands (Gradle wrapper, `android` and `adb` inspection, read-only git) and
-makes destructive ones ask first (`adb uninstall`, `pm clear`, `rm`, `reboot`,
-`git push`). Claude Code shows a trust notice listing the pre-approved rules
-when you open the folder. Review them, and narrow them if others will use this
-repository.
+**Permissions:** the shared `.claude/settings.json` pre-approves only read-only
+commands with fixed prefixes (`android info/docs/layout/screen`, `adb devices`,
+`adb logcat`, `git status`, and a few exact `git diff` / `git log` forms). Open-ended
+`git diff` and `git log` are not pre-approved: Git accepts abbreviated options such
+as `--out=<file>`, so a prefix rule could be used to write files. Installing,
+pushing, `pm`, `su`, `settings`, `rm`, reboot and `git push` always ask. Rules that can run code or drive a device
+(`./gradlew`, `android run`, `adb shell input`) are **not** shared: put them in
+your own git-ignored `.claude/settings.local.json` if you want them
+pre-approved. Claude Code shows a trust notice when a folder pre-approves any
+permission, so keep the shared list short.
 
 ## Architecture rules
 
