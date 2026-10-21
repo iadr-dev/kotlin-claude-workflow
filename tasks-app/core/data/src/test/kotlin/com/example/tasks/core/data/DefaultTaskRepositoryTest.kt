@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -77,28 +78,31 @@ class DefaultTaskRepositoryTest {
   // Sensitivity check: removing `writes.withLock` from clearCompleted makes this test fail.
   @Test
   fun clearCompletedWaitsForInFlightWrite() = runBlocking {
-    val entered = CompletableDeferred<Unit>()
-    val release = CompletableDeferred<Unit>()
-    val local = TaskLocalDataSource(listOf(TaskRecord(id = 1, title = "task", completedAtMillis = null)))
-    val repository =
-      DefaultTaskRepository(
-        local,
-        Dispatchers.Default,
-        clock = {
-          entered.complete(Unit)
-          runBlocking { release.await() }
-          1L
-        },
-      )
+    // A deadlocked write path must fail the test, not hang the suite.
+    withTimeout(5_000) {
+      val entered = CompletableDeferred<Unit>()
+      val release = CompletableDeferred<Unit>()
+      val local = TaskLocalDataSource(listOf(TaskRecord(id = 1, title = "task", completedAtMillis = null)))
+      val repository =
+        DefaultTaskRepository(
+          local,
+          Dispatchers.Default,
+          clock = {
+            entered.complete(Unit)
+            runBlocking { release.await() }
+            1L
+          },
+        )
 
-    val completing = launch(Dispatchers.Default) { repository.setCompleted(TaskId(1), isCompleted = true) }
-    entered.await()
-    val clearing = launch(Dispatchers.Default) { repository.clearCompleted() }
-    delay(50)
-    release.complete(Unit)
-    completing.join()
-    clearing.join()
+      val completing = launch(Dispatchers.Default) { repository.setCompleted(TaskId(1), isCompleted = true) }
+      entered.await()
+      val clearing = launch(Dispatchers.Default) { repository.clearCompleted() }
+      delay(50)
+      release.complete(Unit)
+      completing.join()
+      clearing.join()
 
-    assertEquals(emptyList<Task>(), repository.observeTasks().first())
+      assertEquals(emptyList<Task>(), repository.observeTasks().first())
+    }
   }
 }
