@@ -1298,6 +1298,39 @@ class GradleRunHeartbeatTest(unittest.TestCase):
         self.assertIsNotNone(child.poll())
 
 
+class GradleRunPrivateRootTest(unittest.TestCase):
+    def test_default_root_is_per_user_on_posix(self) -> None:
+        with mock.patch.object(GRADLE_RUN.os, "getuid", create=True, return_value=4242):
+            self.assertEqual(GRADLE_RUN.default_root().name, "gradle-run-4242")
+
+    def test_root_owned_by_another_user_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "gradle-run"
+            root.mkdir()
+            foreign_uid = root.lstat().st_uid + 1
+            with mock.patch.object(GRADLE_RUN.os, "getuid", create=True, return_value=foreign_uid):
+                with self.assertRaises(ValueError):
+                    GRADLE_RUN.ensure_private_root(root)
+
+    def test_symlinked_root_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "elsewhere"
+            target.mkdir()
+            link = Path(directory) / "gradle-run"
+            try:
+                link.symlink_to(target, target_is_directory=True)
+            except OSError:
+                self.skipTest("symlinks are not available")
+            with self.assertRaises(ValueError):
+                GRADLE_RUN.ensure_private_root(link)
+
+    def test_own_root_is_created_and_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "nested" / "gradle-run"
+            GRADLE_RUN.ensure_private_root(root)
+            self.assertTrue(root.is_dir())
+
+
 class GradleRunWindowsProcessTest(unittest.TestCase):
     def test_windows_launch_maps_posix_wrapper_to_bat_sibling(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

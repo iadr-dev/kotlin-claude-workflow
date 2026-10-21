@@ -16,6 +16,7 @@ import re
 import secrets
 import shutil
 import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -52,7 +53,22 @@ URL_PASSWORD = re.compile(r"(://[^:/\s]+:)([^@\s]+)(@)")
 
 
 def default_root() -> Path:
-    return Path(tempfile.gettempdir()) / "gradle-run"
+    # Per-user name: a shared temp directory such as /tmp is writable by every local user.
+    suffix = f"-{os.getuid()}" if hasattr(os, "getuid") else ""
+    return Path(tempfile.gettempdir()) / f"gradle-run{suffix}"
+
+
+def ensure_private_root(root: Path) -> None:
+    """Create the managed root and refuse one that another user or a symlink could control."""
+    root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    info = root.lstat()
+    if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+        raise ValueError("managed root must be a real directory")
+    if hasattr(os, "getuid"):
+        if info.st_uid != os.getuid():
+            raise ValueError("managed root must be owned by the current user")
+        if info.st_mode & 0o077:
+            os.chmod(root, 0o700)
 
 
 def normalize(text: str) -> str:
@@ -224,7 +240,7 @@ def write_ledger(directory: Path, ledger: dict[str, Any]) -> None:
 
 def create_workflow(root: Path) -> int:
     root = managed_root(root)
-    root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    ensure_private_root(root)
     for _ in range(10):
         workflow = secrets.token_hex(16)
         directory = root / workflow
