@@ -96,6 +96,15 @@ coroutines:
 naming:
   FunctionNaming:
     ignoreAnnotated: ['Composable']
+  MatchingDeclarationName:
+    active: true
+  InvalidPackageDeclaration:
+    active: true
+    rootPackage: 'com.example.app'   # set per module
+    requireRootInDeclaration: true
+  ForbiddenClassName:
+    active: true
+    forbiddenName: ['Manager', 'Helper', 'Util', 'Utils']
 ```
 
 For Compose projects add the `io.nlopez.compose.rules:detekt` rule set.

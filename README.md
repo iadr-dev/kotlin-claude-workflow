@@ -265,6 +265,7 @@ Defined in `.claude/skills/kotlin-architecture/` and checked by `kotlin-reviewer
 - Add a use case when it combines repositories, holds a business rule, is reused, or is multi-step. Otherwise the ViewModel calls the repository.
 - `internal` by default; no feature-to-feature implementation dependencies; versions only in `gradle/libs.versions.toml`; shared build logic in convention plugins.
 - Thresholds: cyclomatic complexity ≤ 15, function ≤ 60 lines, class ≤ 600 lines, ≤ 6 parameters, nesting ≤ 4, line coverage domain ≥ 80% / data ≥ 70% / overall ≥ 60%.
+- Folder, package and file naming (package mirrors path, file named after its main type, role suffixes, split at ~15 files) is in `references/structure-and-naming.md`.
 - Quality-gate templates (Spotless and ktlint, detekt, Kover, convention plugins) are in `references/quality-gates.md`.
 
 ## GitHub and pull requests
