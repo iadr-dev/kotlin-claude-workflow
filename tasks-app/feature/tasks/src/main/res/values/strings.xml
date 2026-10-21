@@ -4,6 +4,7 @@
     <string name="tasks_new_task">New task</string>
     <string name="tasks_add">Add</string>
     <string name="tasks_hide_completed">Hide completed</string>
+    <string name="tasks_clear_completed">Clear completed</string>
     <string name="tasks_mark_done">Mark \"%1$s\" done</string>
     <string name="tasks_mark_not_done">Mark \"%1$s\" not done</string>
     <string name="tasks_error_blank">Enter a title</string>

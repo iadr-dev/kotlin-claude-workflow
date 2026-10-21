@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -42,6 +43,7 @@ fun TasksScreen(viewModel: TasksViewModel, modifier: Modifier = Modifier) {
         onAddTask = viewModel::onAddTask,
         onCompletedChange = viewModel::onCompletedChange,
         onHideCompletedChange = viewModel::onHideCompletedChange,
+        onClearCompleted = viewModel::onClearCompleted,
         modifier = modifier,
       )
   }
@@ -54,6 +56,7 @@ internal fun TasksContent(
   onAddTask: () -> Unit,
   onCompletedChange: (id: Long, isCompleted: Boolean) -> Unit,
   onHideCompletedChange: (Boolean) -> Unit,
+  onClearCompleted: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -79,6 +82,13 @@ internal fun TasksContent(
         onCheckedChange = onHideCompletedChange,
         modifier = Modifier.testTag("hideCompleted"),
       )
+    }
+    OutlinedButton(
+      onClick = onClearCompleted,
+      enabled = state.completedCount > 0,
+      modifier = Modifier.testTag("clearCompleted"),
+    ) {
+      Text(stringResource(R.string.tasks_clear_completed))
     }
     if (state.hiddenCount > 0) {
       Text(
@@ -127,6 +137,7 @@ private fun TasksContentPreview() {
           tasks = listOf(TaskItemUi(1, "Buy milk", isCompleted = false), TaskItemUi(2, "Walk dog", isCompleted = true)),
           hideCompleted = false,
           hiddenCount = 0,
+          completedCount = 1,
           draft = "",
           draftError = DraftError.Blank,
         ),
@@ -134,6 +145,7 @@ private fun TasksContentPreview() {
       onAddTask = {},
       onCompletedChange = { _, _ -> },
       onHideCompletedChange = {},
+      onClearCompleted = {},
       modifier = Modifier.padding(16.dp),
     )
   }

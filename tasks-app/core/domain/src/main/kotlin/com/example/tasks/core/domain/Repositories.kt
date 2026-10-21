@@ -8,6 +8,9 @@ public interface TaskRepository {
   public suspend fun addTask(title: String): Task
 
   public suspend fun setCompleted(id: TaskId, isCompleted: Boolean)
+
+  /** Permanently deletes every completed task. Open tasks are untouched; with none completed it is a no-op. */
+  public suspend fun clearCompleted()
 }
 
 public interface SettingsRepository {

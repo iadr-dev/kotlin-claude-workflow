@@ -2,6 +2,8 @@ package com.example.tasks.feature.tasks
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -20,6 +22,7 @@ class TasksContentTest {
       tasks = listOf(TaskItemUi(1, "Buy milk", isCompleted = false)),
       hideCompleted = false,
       hiddenCount = 0,
+      completedCount = 0,
       draft = "",
       draftError = DraftError.Blank,
     )
@@ -36,6 +39,7 @@ class TasksContentTest {
           onAddTask = { addClicks++ },
           onCompletedChange = { id, done -> completed = id to done },
           onHideCompletedChange = {},
+          onClearCompleted = {},
         )
       }
     }
@@ -49,5 +53,37 @@ class TasksContentTest {
 
     assertEquals(1L to true, completed)
     assertEquals(1, addClicks)
+  }
+
+  @Test
+  fun clearCompletedIsDisabledWithoutCompletedTasks() {
+    setContent(state.copy(completedCount = 0))
+
+    compose.onNodeWithTag("clearCompleted").assertIsNotEnabled()
+  }
+
+  @Test
+  fun clearCompletedForwardsClickWhenEnabled() {
+    var clicks = 0
+    setContent(state.copy(completedCount = 1), onClearCompleted = { clicks++ })
+
+    compose.onNodeWithTag("clearCompleted").assertIsEnabled().performClick()
+
+    assertEquals(1, clicks)
+  }
+
+  private fun setContent(content: TasksUiState.Content, onClearCompleted: () -> Unit = {}) {
+    compose.setContent {
+      MaterialTheme {
+        TasksContent(
+          state = content,
+          onDraftChange = {},
+          onAddTask = {},
+          onCompletedChange = { _, _ -> },
+          onHideCompletedChange = {},
+          onClearCompleted = onClearCompleted,
+        )
+      }
+    }
   }
 }

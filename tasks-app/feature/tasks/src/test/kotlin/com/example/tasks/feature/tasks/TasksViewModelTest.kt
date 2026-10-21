@@ -101,6 +101,33 @@ class TasksViewModelTest {
   }
 
   @Test
+  fun clearCompletedDeletesCompletedTasksAndRemovesHiddenLabel() = runTest {
+    backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+    tasks.addTask("open")
+    viewModel.onCompletedChange(id = 1, isCompleted = true)
+    viewModel.onHideCompletedChange(true)
+    assertEquals(1, content().hiddenCount)
+
+    viewModel.onClearCompleted()
+
+    assertEquals(listOf("open"), content().tasks.map { it.title })
+    assertEquals(0, content().hiddenCount)
+    assertEquals(0, content().completedCount)
+  }
+
+  @Test
+  fun completedCountCountsCompletedTasksWhetherOrNotHidden() = runTest {
+    backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+    viewModel.onCompletedChange(id = 1, isCompleted = true)
+    assertEquals(1, content().completedCount)
+
+    viewModel.onHideCompletedChange(true)
+
+    assertEquals(1, content().completedCount)
+    assertEquals(1, content().hiddenCount)
+  }
+
+  @Test
   fun completingWhileHidingRemovesTaskAndCountsIt() = runTest {
     backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
 

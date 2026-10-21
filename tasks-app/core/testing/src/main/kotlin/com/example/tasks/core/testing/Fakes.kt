@@ -28,6 +28,10 @@ class FakeTaskRepository(initial: List<Task> = emptyList()) : TaskRepository {
   override suspend fun setCompleted(id: TaskId, isCompleted: Boolean) {
     tasks.update { list -> list.map { if (it.id == id) it.copy(isCompleted = isCompleted) else it } }
   }
+
+  override suspend fun clearCompleted() {
+    tasks.update { list -> list.filterNot { it.isCompleted } }
+  }
 }
 
 class FakeSettingsRepository(hideCompleted: Boolean = false) : SettingsRepository {
