@@ -7,7 +7,6 @@ import com.example.tasks.core.domain.SettingsRepository
 import com.example.tasks.core.domain.TaskRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 
 /** Composition entry point for the data layer; callers only see domain interfaces. */
 public class DataModule(
@@ -25,12 +24,4 @@ public class DataModule(
   public val taskRepository: TaskRepository = DefaultTaskRepository(taskSource, ioDispatcher, clock)
 
   public val settingsRepository: SettingsRepository = DefaultSettingsRepository(SettingsLocalDataSource())
-}
-
-internal class DefaultSettingsRepository(private val local: SettingsLocalDataSource) : SettingsRepository {
-  override fun observeHideCompleted(): Flow<Boolean> = local.hideCompleted
-
-  override suspend fun setHideCompleted(hide: Boolean) {
-    local.hideCompleted.value = hide
-  }
 }

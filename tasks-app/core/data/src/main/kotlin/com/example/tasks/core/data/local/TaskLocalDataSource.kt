@@ -5,13 +5,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import java.util.concurrent.atomic.AtomicLong
 
-/** Storage record. Stays inside the data layer; repositories map it to the domain [com.example.tasks.core.domain.Task]. */
-internal data class TaskRecord(
-  val id: Long,
-  val title: String,
-  val completedAtMillis: Long?,
-)
-
 /** In-memory source standing in for a database (Room/SQLDelight) in this sample. */
 internal class TaskLocalDataSource(seed: List<TaskRecord> = emptyList()) {
   private val records = MutableStateFlow(seed)
@@ -32,8 +25,4 @@ internal class TaskLocalDataSource(seed: List<TaskRecord> = emptyList()) {
   }
 
   fun observe(): Flow<List<TaskRecord>> = records
-}
-
-internal class SettingsLocalDataSource(hideCompleted: Boolean = false) {
-  val hideCompleted = MutableStateFlow(hideCompleted)
 }
