@@ -130,7 +130,7 @@ has the tested setup; note that the detekt rules that need type resolution
 | Nesting depth | ≤ 4 | detekt `NestedBlockDepth` |
 | Functions per class | ≤ 20 non-private (`ignorePrivate` still counts `internal`) | detekt `TooManyFunctions` |
 | File length | ≤ 500 lines | review (detekt `LargeClass` measures class length) |
-| Test coverage (line) | domain ≥ 80%, data ≥ 70%, overall ≥ 60% per module ("changed lines covered" is a review item: `koverVerify` only checks whole-module coverage) | Kover `koverVerify` |
+| Test coverage (line) | domain ≥ 80%, data ≥ 70%, every other module ≥ 60% (a per-module `coverage.minLine` property); an overall figure needs a root aggregation project; "changed lines covered" is a review item | Kover `koverVerify` |
 | Module dependency rule | zero violations of §1/§2 | review, `./gradlew :app:dependencies`, or a module-graph assertion plugin |
 | Public API drift (libraries) | zero unreviewed changes | BCV `apiCheck`, Kotlin `checkKotlinAbi` or Metalava |
 | Build health | no new compiler warnings; `allWarningsAsErrors` in CI where feasible | Kotlin compiler |

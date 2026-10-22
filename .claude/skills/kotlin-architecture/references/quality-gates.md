@@ -10,8 +10,10 @@ adding; the versions listed are the ones that were tested.
 binary-compatibility-validator do not run on JDK 25 yet (detekt fails with a
 bare JDK version error, the API dump with "Unsupported class file major
 version"). The templates below use detekt 2.x (`dev.detekt`, alpha) and pin the
-bytecode target to 17; CI runs Temurin 17. If you stay on detekt 1.x, run
-Gradle on JDK 17 or 21.
+bytecode target to 17; CI runs Temurin 17. detekt 1.23.8 with Kotlin 2.4.21 and
+Gradle 9.8.2 was also run on Temurin 17 and 21 in GitHub Actions and works there,
+so if you stay on detekt 1.x, run Gradle on JDK 17 or 21 (see the 1.x notes after
+the detekt.yml block).
 
 ## gradle/libs.versions.toml (excerpt)
 
@@ -23,12 +25,14 @@ spotless = "8.10.4"
 ktlint = "1.8.0"
 kover = "0.9.11"
 bcv = "0.18.2"             # maintenance mode; Kotlin's built-in ABI validation is the successor
+composeRules = "0.6.8"     # only for Compose projects
 
 [libraries]
 # plugins the convention plugin applies, as dependencies of build-logic
 detekt-gradlePlugin = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 spotless-gradlePlugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 kover-gradlePlugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
+detekt-composeRules = { module = "io.nlopez.compose.rules:detekt", version.ref = "composeRules" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -79,6 +83,7 @@ gradlePlugin {
 import com.diffplug.gradle.spotless.SpotlessExtension
 import dev.detekt.gradle.Detekt
 import dev.detekt.gradle.extensions.DetektExtension
+import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
@@ -108,6 +113,15 @@ class QualityConventionPlugin : Plugin<Project> {
                 config.setFrom(rootProject.file("config/detekt/detekt.yml"))
                 buildUponDefaultConfig.set(true) // 2.x properties use .set(), not "="
                 baseline.set(file("detekt-baseline.xml"))
+            }
+            // Coverage bound per module: `coverage.minLine=80` in the module's own
+            // gradle.properties (default 60). See "Kover thresholds".
+            val minLine = (findProperty("coverage.minLine") as String?)?.toInt() ?: 60
+            extensions.configure<KoverProjectExtension> {
+                reports {
+                    filters { excludes { annotatedBy("*Generated*", "androidx.compose.ui.tooling.preview.Preview") } }
+                    verify { rule { minBound(minLine) } }
+                }
             }
             // Plain `detekt` skips the rules that need type resolution (InjectDispatcher,
             // UnsafeCallOnNullableType, ...). `detektMain` and `detektTest` run them but
@@ -212,30 +226,95 @@ naming:
     forbiddenName: ['*Manager', '*Helper', '*Util', '*Utils']   # glob patterns
 ```
 
-For detekt 1.x, the keys are the old ones (`threshold`, `functionThreshold`,
-`constructorThreshold`, `thresholdInClasses`, `thresholdInFiles`) and
-`UnusedPrivateMember` instead of the two `UnusedPrivate*` rules.
+For detekt 1.x (verified with 1.23.8), the keys are the old ones (`threshold`,
+`functionThreshold`, `constructorThreshold`, `thresholdInClasses`,
+`thresholdInFiles`) and `UnusedPrivateMember` instead of the two `UnusedPrivate*`
+rules; it also rejects the 2.x names (`allowedComplexity`, `allowedLines`) with
+"misspelled or does not exist". In the convention plugin use
+`buildUponDefaultConfig = true` (with `=`, not `.set()`) and the plugin id
+`io.gitlab.arturbosch.detekt`; the typed tasks `detektMain` and `detektTest` exist
+but are not attached to `check` either, so keep the `dependsOn` line, typed as
+`io.gitlab.arturbosch.detekt.Detekt`.
 `InjectDispatcher` and `UnsafeCallOnNullableType` only fire in the
 type-resolution tasks, which the convention plugin above attaches to `check`
 (`InjectDispatcher` also needs kotlinx-coroutines on the module's classpath).
 Because plain `detekt` also analyses main code, one violation can be reported
 by more than one task.
-For Compose projects add the `io.nlopez.compose.rules:detekt` rule set (not
-covered by these tests).
+
+**Compose projects.** Add the Compose rules (the same artifact serves detekt 1.x and
+2.x; 0.6.3 and later target detekt 2.0.0-alpha.6) to each Compose module, and
+enable the opt-in rules you want in `detekt.yml`:
+
+```kotlin
+dependencies { detektPlugins(libs.detekt.composeRules) }
+```
+
+```yaml
+Compose:
+  UnstableCollections:
+    active: true   # opt-in; most other Compose rules are on by default
+```
+
+Spotless's ktlint rejects every PascalCase `@Composable` function, so `check` is
+red on any Compose code until the root `.editorconfig` says so:
+
+```
+[*.{kt,kts}]
+ktlint_function_naming_ignore_when_annotated_with = Composable
+```
+
+Tested on an Android app and library with AGP 9.4.1. The `ignoreAnnotated:
+['Composable']` entries are detekt's own mechanism (not the Compose rule set) and
+work as intended: a 70-line composable and a 9-parameter composable are not
+flagged, while the same code in a plain function is. `LongParameterList` runs only
+in the type-resolution tasks (`detektMain` on JVM, `detektDebug` and
+`detektRelease` on Android), so plain `detekt` misses it. The Compose rules
+`ModifierMissing` and `MissingNonRestartableComposable` also fire on tiny
+delegating composables.
 
 ## Kover thresholds
 
-```kotlin
-kover {
-    reports {
-        filters { excludes { annotatedBy("*Generated*", "androidx.compose.ui.tooling.preview.Preview") } }
-        verify { rule { minBound(60) } } // per-module overrides: domain 80, data 70
-    }
-}
+The bound is applied by the convention plugin above. Rules **stack**: a module
+cannot go below the shared default, because a second `minBound` in a module adds
+a rule instead of replacing the first (a module with `minBound(40)` still failed
+the shared 60). So give each module its own number through a property, not an
+override:
+
+```
+# core/domain/gradle.properties
+coverage.minLine=80
+# core/data/gradle.properties
+coverage.minLine=70
 ```
 
-`koverVerify` checks the overall line coverage of its own module, so it enforces
-the module thresholds in SKILL.md §4 but not "changed lines covered".
+Modules without the property get the default 60. Each module's `koverVerify`
+then enforces its own bound (verified: domain at 75% failed its 80 while data at
+75% passed its 70). `koverVerify` checks the line coverage of its own module, so
+it does not enforce "changed lines covered".
+
+An **overall** figure across modules needs a root project that aggregates them;
+per-module checks do not enforce it. The root must apply `base` first (otherwise
+it has no `check`) and use the catalog alias, not the bare plugin id:
+
+```kotlin
+// root build.gradle.kts
+plugins {
+    base
+    alias(libs.plugins.kover)
+}
+
+dependencies {
+    kover(project(":core:domain"))
+    kover(project(":core:data"))
+    kover(project(":feature:tasks"))
+}
+
+kover { reports { verify { rule { minBound(60) } } } }
+```
+
+If you also use the module dependency rule below, merge the two root files into one
+`plugins` block: `base`, `alias(libs.plugins.kotlin.jvm) apply false`,
+`id("app.quality") apply false` and `alias(libs.plugins.kover)`.
 
 ## Public API check (libraries)
 
