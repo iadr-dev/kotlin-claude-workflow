@@ -134,14 +134,14 @@ Save the block as `.github/workflows/ci.yml`. It derives from a workflow that
 ran green on `ubuntu-latest`, but this template itself has not been run end to
 end.
 
-What `./gradlew check` already runs (verified against the current Kover, Android
-Gradle plugin and binary-compatibility-validator sources):
+What `./gradlew check` already runs, as of Kover 0.9, Android Gradle plugin 8/9
+and binary-compatibility-validator 0.18, plus the project's unit tests:
 
 - Spotless and detekt: attached to `check` by their plugins.
-- Kover `koverVerify`: attached, but only when the project defines verification
-  rules (`verify { rule { ... } }`). It is a per-project task, so each module
-  that applies Kover runs its own. A variant task such as `koverVerifyDebug` is
-  not attached; append it if the gate is variant-specific.
+- Kover `koverVerify`: attached for the total variant; it only gates something
+  when `verify { rule { ... } }` is defined. It is a per-project task, so each
+  module that applies Kover runs its own. A variant task such as
+  `koverVerifyDebug` is not attached; append it if the gate is variant-specific.
 - Android lint: `check` runs `lint` for the default variant only. Append
   `lintRelease` (or another `lint<Variant>`) to cover other variants.
 - API check (`apiCheck`, binary-compatibility-validator): attached to `check`.
