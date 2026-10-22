@@ -8,3 +8,7 @@ captures/
 .claude/settings.local.json
 __pycache__/
 *.pyc
+build/
+.gradle/
+local.properties
+*.iml

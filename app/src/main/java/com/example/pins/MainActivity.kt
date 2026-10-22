@@ -1,0 +1,13 @@
+package com.example.pins
+
+import android.app.Activity
+import android.os.Bundle
+import android.widget.TextView
+import com.example.pins.ui.label
+
+class MainActivity : Activity() {
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(TextView(this).apply { text = label("pins") })
+  }
+}
