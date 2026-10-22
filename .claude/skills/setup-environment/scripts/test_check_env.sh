@@ -36,7 +36,7 @@ echo 'distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.
 # Wrappers (not copies) so the real binaries keep their library path, e.g. msys DLLs on Windows.
 stub_exec() { printf '#!/bin/sh\nexec "%s" "$@"\n' "$3" > "$1/$2"; chmod +x "$1/$2"; }
 # Private toolbox for the MISSING case: only the real tools check-env.sh needs, plus the stubs minus python3.
-for t in env bash sed grep awk cut tr sort head uname timeout cat; do
+for t in env bash sed grep awk tr sort head tail uname timeout; do
   p="$(command -v "$t")" && stub_exec "$toolbox" "$t" "$p"
 done
 cp "$stubs"/* "$toolbox"/
