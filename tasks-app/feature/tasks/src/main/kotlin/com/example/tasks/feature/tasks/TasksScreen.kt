@@ -63,7 +63,6 @@ internal fun TasksContent(
     Text(
       stringResource(R.string.tasks_title_with_open, state.openCount),
       style = MaterialTheme.typography.headlineMedium,
-      modifier = Modifier.testTag("title"),
     )
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
       OutlinedTextField(
