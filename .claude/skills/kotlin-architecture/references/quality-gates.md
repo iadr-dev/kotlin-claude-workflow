@@ -278,9 +278,8 @@ work as intended in both: a 70-line composable and a 9-parameter composable are 
 flagged, while the same code in a plain function is. `MagicNumber` and
 `FunctionNaming` must be set `active: true` (as in the yaml above), otherwise they
 never fire and there is nothing to exempt. `LongParameterList` runs only in the
-type-resolution tasks (`detektMain` on JVM, `detektDebug` and `detektRelease` on
-Android, `detektMainJvm` and `detektMainAndroid` on KMP), so plain `detekt` misses
-it. `UnstableCollections` fires only with the opt-in block above. The Compose rules
+typed detekt tasks (listed under "What `./gradlew check` already runs"), so plain
+`detekt` misses it. `UnstableCollections` fires only with the opt-in block above. The Compose rules
 `ModifierMissing` and `MissingNonRestartableComposable` fire on small composables,
 but `ModifierMissing` can miss one that only emits `BasicText`.
 
@@ -324,6 +323,11 @@ On a Kotlin Multiplatform module the total `koverVerify` is attached to `check` 
 merges the JVM and Android variants (`koverVerifyJvm` and `koverVerifyAndroid` exist
 but are not attached); iOS and native code is not measured, and the
 `coverage.minLine` property works unchanged.
+
+On an Android module with product flavors the total `koverVerify` merges **all**
+variants, release included, while release unit tests are never run, so
+release-only code counts as uncovered; the `koverVerify<Variant>` tasks are not
+attached.
 
 An **overall** figure across modules needs a root project that aggregates them;
 per-module checks do not enforce it. The root must apply `base` first (otherwise
@@ -436,11 +440,12 @@ unused/misdeclared (`api` vs `implementation`) dependencies.
 Save the block as `.github/workflows/ci.yml`. It derives from a workflow that
 ran green on `ubuntu-latest`. The template itself was run on GitHub Actions
 against three small projects (Gradle 9.8.2, Temurin 17), first with the `v4`
-actions and again with the pins below: a Kotlin JVM project
-(green with a passing test, red with a broken one), an Android app with two
-library modules (`./gradlew check assembleDebug`, about 2 minutes), and a Kotlin
-Multiplatform library (green on `ubuntu-latest` in about 1.5 minutes and on
-`macos-latest` in about 4 to 7 minutes with a cold cache). Every action in the block is a SHA-pinned
+actions and then again with the pins below, which went green on all three: a
+Kotlin JVM project (with the `v4` actions it also went red when a test was broken
+on purpose), an Android app with two library modules
+(`./gradlew check assembleDebug`, about 1.5 to 2 minutes), and a Kotlin
+Multiplatform library (about 1.5 minutes on `ubuntu-latest` and 4 to 7 minutes on
+`macos-latest` with a cold cache). Every action in the block is a SHA-pinned
 action; see the note after the block.
 
 What `./gradlew check` already runs, as of Kover 0.9, Android Gradle plugin 8/9
@@ -457,10 +462,7 @@ and binary-compatibility-validator 0.18, plus the project's unit tests:
   when `verify { rule { ... } }` is defined. It is a per-project task, so each
   module that applies Kover runs its own. A variant task such as
   `koverVerifyDebug` is not attached; append it if the gate is variant-specific.
-  On an Android module with product flavors the total `koverVerify` merges **all**
-  variants, release included, while release unit tests are never run, so
-  release-only code counts as uncovered (a 60-function class that exists only in
-  `src/release` took a module to 1.6% in a test and failed the 60% bound).
+  With Android product flavors, see "Kover thresholds" above.
 - Android lint: `check` runs lint for **one** variant only: the `debug` build type
   of the first flavor in each dimension (alphabetical, or the flavor marked
   `isDefault = true`). Without flavors that is `debug`; with a `tier` dimension of
@@ -484,7 +486,8 @@ and binary-compatibility-validator 0.18, plus the project's unit tests:
 So `./gradlew check` is the single default. The only optional appends are
 `assembleDebug` (Android dexing and packaging, for example a class defined in two
 modules; `check` already catches manifest and resource link errors),
-`lint<Variant>` and `koverVerify<Variant>`.
+`lint<Variant>` (unless you use the `androidComponents` snippet above) and
+`koverVerify<Variant>`.
 
 ```yaml
 name: CI
@@ -539,9 +542,9 @@ latest releases when this was written, run green on a JVM, an Android and a KMP
 project with no warnings from any of the three actions. Things to know when you
 adopt or change them:
 
-- `actions/setup-java` v1 through v4 are deprecated upstream; v5 and later also run on
-  Node 24 and need a runner of version 2.327.1 or newer (GitHub-hosted runners
-  qualify; update self-hosted ones). v6 removed the legacy Adopt distributions, so
+- `actions/setup-java` v1 through v4 are deprecated upstream (its README says so); v5
+  and later also run on Node 24 and need a runner of version 2.327.1 or newer, per
+  their release notes (GitHub-hosted runners qualify; update self-hosted ones). v6 removed the legacy Adopt distributions, so
   keep `distribution: temurin` (or another current vendor).
 - `setup-gradle` v6 has two cache providers. The default, `enhanced`, is a
   proprietary component governed by Gradle's Terms of Use (free for public

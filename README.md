@@ -93,7 +93,7 @@ rm -rf /tmp/kcw
 Then, in your project:
 
 1. Edit `CLAUDE.md`: adjust the build commands to your modules.
-2. Add CI that runs your Gradle checks on every pull request (see the [CI template (GitHub Actions)](.claude/skills/kotlin-architecture/references/quality-gates.md#ci-template-github-actions), which ran green on a JVM, an Android and a KMP sample project); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
+2. Add CI that runs your Gradle checks on every pull request (see the [CI template (GitHub Actions)](.claude/skills/kotlin-architecture/references/quality-gates.md#ci-template-github-actions), which ran green on JVM, Android and KMP test projects); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
 3. Restart Claude Code in the project and accept the plugin prompts from `.claude/settings.json`.
 4. Ask Claude to run `setup-environment` and follow its proposals.
 5. Try it: `/new-feature <a small change>`.
@@ -327,13 +327,13 @@ CLAUDE.md                 project instructions Claude reads every session
   skills/                 all skills listed above
 docs/agents/              issue tracker, triage labels, domain docs, GitHub Project binding
 GLOSSARY.md               vocabulary of the environment check (Tool, Status, OK, UPDATE...)
+LICENSE                   MIT
 ```
 
 ## Status
 
-Checked on Windows 11 with Git Bash, Gradle 9.8.2, AGP 9.4.1, Kotlin 2.4.21, against a small
-clean-architecture Android sample app that was used to exercise the workflow and then removed
-(it stays in git history at commit `71988fc`, folder `tasks-app/`):
+Checked on Windows 11 with Git Bash, Gradle 9.8.2, AGP 9.4.1, Kotlin 2.4.21, on small
+projects built for each test (none of them is kept in this repository):
 
 | Area | State |
 |---|---|
@@ -345,10 +345,10 @@ clean-architecture Android sample app that was used to exercise the workflow and
 | `setup-issue-tracker`, `triage` (issues #8 and #9 triaged with agent briefs), `run-github-project` `review` and `setup` (binding for Project #2, validated live, merged in PR #12) | tested on a real repository and board |
 | `run-github-project` `next` (issue #8 to PR #15: claim, fast-path plan, implementation, independent review and repair, CI, merge, close, board to Done) | tested on a real repository and board |
 | `run-github-project` `drain` (issue #9 to PR #17: claim, full `to-plan` plan, implementation, independent review and repair, CI, watcher wait at the merge gate, merge, close, board to Done) | tested on a real repository and board |
-| `wayfinder` (map issue #19: charting, three parallel research agents, resolving tickets, the live blocking gate) | tested on a real repository; working a human-in-the-loop `grilling` ticket is not yet tested |
+| `wayfinder` (two real maps: charting, parallel research agents, resolving research and live grilling tickets with the maintainer's answers, the live blocking gate, closing a finished map) | tested on a real repository |
 | `CHECK_ENV_PIN` (pinned tools in the environment check), `test_check_env.sh` with 22 cases | tested on Windows Git Bash only |
-| The quality-gate templates in `quality-gates.md` (convention plugin, Spotless, detekt 2.x and 1.x, Compose rules, Kover per-module and overall bounds, API check, module rule) | built from the doc and run on a multi-module JVM project (every gate under `check`, each red when violated) and an Android Compose project; detekt 1.x on Temurin 17 and 21 in Actions |
-| The CI template (GitHub Actions) in `quality-gates.md` | SHA-pinned and run on GitHub Actions on a JVM, an Android (`check assembleDebug`) and a KMP project (`ubuntu-latest` and `macos-latest`); green with a passing test, red with a broken one |
+| The quality-gate templates in `quality-gates.md` (convention plugin, Spotless, detekt 2.x and 1.x, Compose rules, Kover per-module and overall bounds, API check, module rule) | rebuilt from the doc and run on a multi-module JVM project (every gate under `check`, each red when violated), an Android Compose project, product flavors, and a KMP module with Compose Multiplatform; detekt 1.x on Temurin 17 and 21 in Actions. iOS targets were not built (Windows host) |
+| The CI template (GitHub Actions) in `quality-gates.md`, with its SHA-pinned actions and Dependabot block | run on GitHub Actions on a JVM, an Android (`check assembleDebug`) and a KMP project (`ubuntu-latest` and `macos-latest`) with the current pins, green on all; red with a broken test on the earlier `v4` pins. The Dependabot block follows GitHub's documentation but was not run (it only takes effect on a default branch) |
 | Physical Android phone (Samsung, Android 15): install, launch, full UI flow, logs | tested |
 | macOS and Linux | not yet tested (scripts are written to be portable) |
 

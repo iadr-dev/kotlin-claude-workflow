@@ -118,8 +118,8 @@ Use these as review findings and as detekt/Kover gates. Exceeding one is a
 finding to justify or fix, not an automatic rewrite. `references/quality-gates.md`
 has the tested setup; note that the detekt rules that need type resolution
 (`InjectDispatcher`, `UnsafeCallOnNullableType`) only run if the typed detekt tasks
-(`detektMain` and `detektTest`; `detektDebug` and `detektRelease` on Android; `detektMainJvm` and `detektMainAndroid` on KMP) are
-attached to `check`, which its convention plugin does.
+are attached to `check`, which its convention plugin does (the task names per project
+type are listed there).
 
 | Metric | Threshold | Tool |
 |---|---|---|
