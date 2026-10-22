@@ -196,6 +196,7 @@ style:
   ForbiddenComment:
     active: false
   MagicNumber:
+    active: true
     ignorePropertyDeclaration: true
     ignoreAnnotated: ['Composable', 'Preview']
   UnusedPrivateProperty:
@@ -218,6 +219,7 @@ coroutines:
 
 naming:
   FunctionNaming:
+    active: true
     ignoreAnnotated: ['Composable']
   MatchingDeclarationName:
     active: true
@@ -268,14 +270,35 @@ red on any Compose code until the root `.editorconfig` says so:
 ktlint_function_naming_ignore_when_annotated_with = Composable
 ```
 
-Tested on an Android app and library with AGP 9.4.1. The `ignoreAnnotated:
+Tested on an Android app and library with AGP 9.4.1, and on a Kotlin
+Multiplatform module with Compose Multiplatform 1.12.2 (JVM, Android and iOS
+targets declared; the iOS targets were not built). The `ignoreAnnotated:
 ['Composable']` entries are detekt's own mechanism (not the Compose rule set) and
-work as intended: a 70-line composable and a 9-parameter composable are not
-flagged, while the same code in a plain function is. `LongParameterList` runs only
-in the type-resolution tasks (`detektMain` on JVM, `detektDebug` and
-`detektRelease` on Android), so plain `detekt` misses it. The Compose rules
-`ModifierMissing` and `MissingNonRestartableComposable` also fire on tiny
-delegating composables.
+work as intended in both: a 70-line composable and a 9-parameter composable are not
+flagged, while the same code in a plain function is. `MagicNumber` and
+`FunctionNaming` must be set `active: true` (as in the yaml above), otherwise they
+never fire and there is nothing to exempt. `LongParameterList` runs only in the
+type-resolution tasks (`detektMain` on JVM, `detektDebug` and `detektRelease` on
+Android, `detektMainJvm` and `detektMainAndroid` on KMP), so plain `detekt` misses
+it. `UnstableCollections` fires only with the opt-in block above. The Compose rules
+`ModifierMissing` and `MissingNonRestartableComposable` fire on small composables,
+but `ModifierMissing` can miss one that only emits `BasicText`.
+
+Spotless caches lint results in `<module>/build/spotless-lints`, and that cache
+ignores `.editorconfig` changes. If `check` was already red on composable names,
+delete `build/spotless-lints` (or run `clean`) after adding the line above.
+
+**Kotlin Multiplatform.** No per-target setup: `detektPlugins(libs.detekt.composeRules)`
+in the module's build file loads the rules in every detekt task. The detekt plugin
+creates one untyped task per source set (`detektCommonMainSourceSet`,
+`detektJvmMainSourceSet`, `detektIosMainSourceSet`, ...) plus typed tasks
+(`detektMainJvm`, `detektTestJvm`, `detektMainAndroid`, `detektHostTestAndroid`),
+23 in the tested module, and the `dependsOn(tasks.withType<Detekt>())` line
+attaches all of them to `check`. Plain `detekt` has no sources on KMP and produces
+no report. `commonMain` code is analysed by `detektCommonMainSourceSet`,
+`detektMainJvm` and `detektMainAndroid`, so one violation can be reported up to
+three times. `InjectDispatcher`, `UnsafeCallOnNullableType` and `LongParameterList`
+run only in the typed tasks.
 
 ## Kover thresholds
 
@@ -296,6 +319,11 @@ Modules without the property get the default 60. Each module's `koverVerify`
 then enforces its own bound (verified: domain at 75% failed its 80 while data at
 75% passed its 70). `koverVerify` checks the line coverage of its own module, so
 it does not enforce "changed lines covered".
+
+On a Kotlin Multiplatform module the total `koverVerify` is attached to `check` and
+merges the JVM and Android variants (`koverVerifyJvm` and `koverVerifyAndroid` exist
+but are not attached); iOS and native code is not measured, and the
+`coverage.minLine` property works unchanged.
 
 An **overall** figure across modules needs a root project that aggregates them;
 per-module checks do not enforce it. The root must apply `base` first (otherwise
@@ -420,7 +448,8 @@ and binary-compatibility-validator 0.18, plus the project's unit tests:
 - Spotless: attached to `check` by its plugin.
 - detekt: the plain `detekt` task is attached, but the rules that need type
   resolution (`InjectDispatcher`, `UnsafeCallOnNullableType`) only run in
-  `detektMain` and `detektTest`, which are not attached by default. The
+  `detektMain` and `detektTest` (`detektDebug` and `detektRelease` on Android,
+  `detektMainJvm` and `detektMainAndroid` on KMP), which are not attached by default. The
   convention plugin above attaches them; without it, `check` stays green on a
   hard-coded `Dispatchers.IO` or a `!!` in main code.
 - Kover `koverVerify`: attached for the total variant; it only gates something
