@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main] # rename if your default branch differs
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # KMP: iOS tests (iosSimulatorArm64Test) only run on a macOS runner. On
+    # ubuntu-latest `check` runs jvmTest and the Android host test, and the iOS test
+    # tasks are skipped with a "Native task ... is disabled" warning; set
+    # kotlin.native.ignoreDisabledTargets=true in gradle.properties to silence it.
+    # macos-latest is Apple Silicon, so iosX64Test is skipped there too; keep
+    # iosSimulatorArm64(). For iOS coverage run a second job with
+    # `runs-on: macos-latest` (about 3.5 minutes against about 1 on Linux).
+    runs-on: ubuntu-latest
+    # If the Gradle root is a subfolder, uncomment:
+    # defaults:
+    #   run:
+    #     working-directory: my-app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 17 # raise to your project's toolchain version
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+      - name: Check
+        # Android: append assembleDebug to also catch dexing and packaging errors
+        # (for example duplicate classes); check already catches resource and
+        # manifest link errors. The Android SDK is already on ubuntu-latest, and
+        # a missing platform is downloaded automatically.
+        run: ./gradlew check
+
+  build-macos:
+    # KMP: iOS tests (iosSimulatorArm64Test) only run on a macOS runner. On
+    # ubuntu-latest `check` runs jvmTest and the Android host test, and the iOS test
+    # tasks are skipped with a "Native task ... is disabled" warning; set
+    # kotlin.native.ignoreDisabledTargets=true in gradle.properties to silence it.
+    # macos-latest is Apple Silicon, so iosX64Test is skipped there too; keep
+    # iosSimulatorArm64(). For iOS coverage run a second job with
+    # `runs-on: macos-latest` (about 3.5 minutes against about 1 on Linux).
+    runs-on: macos-latest
+    # If the Gradle root is a subfolder, uncomment:
+    # defaults:
+    #   run:
+    #     working-directory: my-app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 17 # raise to your project's toolchain version
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+      - name: Check
+        # Android: append assembleDebug to also catch dexing and packaging errors
+        # (for example duplicate classes); check already catches resource and
+        # manifest link errors. The Android SDK is already on ubuntu-latest, and
+        # a missing platform is downloaded automatically.
+        run: ./gradlew check
