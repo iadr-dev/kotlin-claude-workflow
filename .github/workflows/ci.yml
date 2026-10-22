@@ -24,7 +24,12 @@ jobs:
           distribution: temurin
           java-version: 17 # raise to your project's toolchain version
       - uses: gradle/actions/setup-gradle@v4
+      - name: Probe SDK before
+        run: echo "ANDROID_HOME=$ANDROID_HOME"; ls $ANDROID_HOME/platforms $ANDROID_HOME/build-tools; ls $ANDROID_HOME/licenses
       - name: Check
         # Android: append assembleDebug to also catch packaging and resource
         # errors (the Android SDK is already on ubuntu-latest).
         run: ./gradlew check assembleDebug
+      - name: Probe SDK after
+        if: always()
+        run: ls $ANDROID_HOME/platforms $ANDROID_HOME/build-tools
