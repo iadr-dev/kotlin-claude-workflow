@@ -435,11 +435,12 @@ unused/misdeclared (`api` vs `implementation`) dependencies.
 
 Save the block as `.github/workflows/ci.yml`. It derives from a workflow that
 ran green on `ubuntu-latest`. The template itself was run on GitHub Actions
-against three small projects (Gradle 9.8.2, Temurin 17): a Kotlin JVM project
+against three small projects (Gradle 9.8.2, Temurin 17), first with the `v4`
+actions and again with the pins below: a Kotlin JVM project
 (green with a passing test, red with a broken one), an Android app with two
 library modules (`./gradlew check assembleDebug`, about 2 minutes), and a Kotlin
-Multiplatform library (green on `ubuntu-latest` in about 1 minute and on
-`macos-latest` in about 3.5 minutes). Every action in the block is a SHA-pinned
+Multiplatform library (green on `ubuntu-latest` in about 1.5 minutes and on
+`macos-latest` in about 4 to 7 minutes with a cold cache). Every action in the block is a SHA-pinned
 action; see the note after the block.
 
 What `./gradlew check` already runs, as of Kover 0.9, Android Gradle plugin 8/9
@@ -505,19 +506,21 @@ jobs:
     # kotlin.native.ignoreDisabledTargets=true in gradle.properties to silence it.
     # macos-latest is Apple Silicon, so iosX64Test is skipped there too; keep
     # iosSimulatorArm64(). For iOS coverage run a second job with
-    # `runs-on: macos-latest` (about 3.5 minutes against about 1 on Linux).
+    # `runs-on: macos-latest` (about 4 to 7 minutes cold, against about 1.5 on Linux).
     runs-on: ubuntu-latest
     # If the Gradle root is a subfolder, uncomment:
     # defaults:
     #   run:
     #     working-directory: my-app
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: 17 # raise to your project's toolchain version
-      - uses: gradle/actions/setup-gradle@48b5f213c81028ace310571dc5ec0fbbca0b2947 # v4
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic # open-source (MIT) caching; the default 'enhanced' provider is proprietary
       - name: Check
         # Android: append assembleDebug to also catch dexing and packaging errors
         # (for example duplicate classes); check already catches resource and
@@ -527,14 +530,28 @@ jobs:
 ```
 
 Pinning: every action is a SHA-pinned action, a full commit SHA with the version
-in a trailing comment (`uses: owner/action@<sha> # v4`), so the code that runs
+in a trailing comment (`uses: owner/action@<sha> # v7.0.1`), so the code that runs
 cannot change under the same reference. That is what SonarCloud
 (`githubactions:S7637`) and most supply-chain guidance expect, and it is one rule
-for first-party and third-party actions alike. The SHAs are the commits behind the
-`v4` tags that the template was tested with; newer majors exist (checkout v7,
-setup-java v6, setup-gradle v6) and need a re-test before the template moves to
-them. To use the readable Tag-pinned action form instead, replace each
-`@<sha> # v4` with `@v4`.
+for first-party and third-party actions alike. The pins are `actions/checkout`
+v7.0.1, `actions/setup-java` v6.1.0 and `gradle/actions/setup-gradle` v6.4.0, the
+latest releases when this was written, run green on a JVM, an Android and a KMP
+project with no warnings from any of the three actions. Things to know when you
+adopt or change them:
+
+- `actions/setup-java` v1 through v4 are deprecated upstream; v5 and later also run on
+  Node 24 and need a runner of version 2.327.1 or newer (GitHub-hosted runners
+  qualify; update self-hosted ones). v6 removed the legacy Adopt distributions, so
+  keep `distribution: temurin` (or another current vendor).
+- `setup-gradle` v6 has two cache providers. The default, `enhanced`, is a
+  proprietary component governed by Gradle's Terms of Use (free for public
+  repositories, a free preview for private ones). The template sets
+  `cache-provider: basic`, which is fully open source (MIT) and built on the standard
+  Actions cache, so nothing proprietary is involved. Delete the `with:` lines if you
+  want `enhanced`. With `basic` the first run finds nothing to restore, and pull
+  request runs from a branch are cache read-only. v5 is the last line without the choice.
+- To use the readable Tag-pinned action form instead, replace each
+  `@<sha> # vX.Y.Z` with the major tag (`@v7`, `@v6`).
 
 ### Keeping the pins current (Dependabot)
 
@@ -559,7 +576,7 @@ updates:
 ```
 
 Per GitHub's documentation, Dependabot updates the version comment on the same
-line as a SHA (`actions/checkout@<commit> # v4`), so the comment form above is what
+line as a SHA (`actions/checkout@<commit> # v7.0.1`), so the comment form above is what
 it expects. Dependabot **security alerts do not cover SHA-pinned actions** (they
 only cover semantic-version references); version updates still do. Majors are not
 ignored by default on purpose: the pull request runs your CI before it merges, which
