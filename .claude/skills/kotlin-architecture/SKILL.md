@@ -126,7 +126,7 @@ finding to justify or fix, not an automatic rewrite.
 | Parameters | ≤ 6 function / 7 constructor (composables exempt for modifiers/slots) | detekt `LongParameterList` |
 | Nesting depth | ≤ 4 | detekt `NestedBlockDepth` |
 | Functions per class | ≤ 20 public | detekt `TooManyFunctions` |
-| File length | ≤ 500 lines | detekt `LargeClass`/review |
+| File length | ≤ 500 lines | review (detekt `LargeClass` measures class length) |
 | Test coverage (line) | domain ≥ 80%, data ≥ 70%, overall ≥ 60%; changed lines covered | Kover `koverVerify` |
 | Module dependency rule | zero violations of §1/§2 | review, `./gradlew :app:dependencies`, or a module-graph assertion plugin |
 | Public API drift (libraries) | zero unreviewed changes | BCV `apiCheck` / Metalava |

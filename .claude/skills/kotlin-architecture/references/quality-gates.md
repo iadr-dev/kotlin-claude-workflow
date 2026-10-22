@@ -100,11 +100,11 @@ naming:
     active: true
   InvalidPackageDeclaration:
     active: true
-    rootPackage: 'com.example.app'   # set per module
+    rootPackage: 'com.example.app'   # app-wide root: one value for every module
     requireRootInDeclaration: true
   ForbiddenClassName:
     active: true
-    forbiddenName: ['Manager', 'Helper', 'Util', 'Utils']
+    forbiddenName: ['*Manager', '*Helper', '*Util', '*Utils']   # glob patterns
 ```
 
 For Compose projects add the `io.nlopez.compose.rules:detekt` rule set.

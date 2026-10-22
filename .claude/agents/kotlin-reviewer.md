@@ -32,7 +32,7 @@ Only issues you can defend with a concrete failure scenario:
 - Tests: changed behavior without a test, tests that can't fail.
 - API: public surface broader than needed, binary-incompatible change in a library module.
 - Architecture: dependency-rule violations (framework/DTO types in domain, feature→feature impl dependency, core→feature), logic in the wrong layer, `api` where `implementation` suffices, missing `internal`.
-- Structure and naming (`kotlin-architecture` §8): package not matching its directory, file named after the wrong type, two independent aggregates in one file, `Utils`/`Helpers`/`Manager` names, a package past ~15 files, tests not mirroring their subject, files placed in the wrong layer or module.
+- Structure and naming (`kotlin-architecture` §8): package not matching its directory, file named after the wrong type, two independent aggregates in one file, `Utils.kt`/`Helpers.kt` file names and `Manager`/`Helper` class names, a package or folder past ~15 files, tests not mirroring their subject, files placed in the wrong layer or module.
 - Maintainability metrics: touched functions/classes over the `kotlin-architecture` §4 thresholds (complexity, length, parameters, nesting) — cite the measured value.
 - Performance: main-thread I/O, unstable Compose state models, hard-coded dispatchers, unbounded lists without paging, N+1 queries.
 

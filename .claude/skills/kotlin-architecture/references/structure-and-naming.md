@@ -12,7 +12,7 @@ triggers below.
 ## 1. Packages
 
 - The package mirrors the directory path, and every module has one root:
-  `<org>.<app>.<module path>`.
+  `<org>.<app>.<module path>` (`:app` uses `<org>.<app>` directly).
 
   | Module | Root package |
   |---|---|
@@ -21,6 +21,10 @@ triggers below.
   | `:core:domain` | `com.example.tasks.core.domain` |
   | `:core:data` | `com.example.tasks.core.data` |
   | `:core:testing` | `com.example.tasks.core.testing` |
+
+  Source directories may be `src/main/kotlin` or `src/main/java` (Android's
+  default for an app module): the package must match the path below the source
+  root, not the name of the source root.
 
 - Group by feature or subdomain first, by role second. `task/` containing a
   repository, a use case and a mapper beats `repositories/` containing every
@@ -31,7 +35,7 @@ triggers below.
 
 ## 2. Layout inside a module
 
-Grow into these shapes when the split triggers (section 4) fire.
+Grow into these shapes (the sample app stays flat) when the split triggers (section 4) fire.
 
 **Feature module (presentation)**
 
@@ -88,13 +92,13 @@ module.
 - A file is named after its primary top-level type: `TaskRepository.kt`.
 - **Allowed exception:** one file may hold small types that always change
   together: a sealed hierarchy with its members, a value class with its entity
-  (`Task.kt` = `TaskId` + `Task`), an interface with its tiny result types
+  (`Task.kt` = `TaskId` + `Task`), a use case or interface with its tiny result types
   (`AddTaskUseCase.kt` = the use case + `AddTaskResult` + `TitleError`). Name the
   file after the main type or the group concept (`TasksUiState.kt`).
 - **Not an exception:** two independent aggregates or services in one file
   (two repositories, two fakes, a repository plus its data source). Split them.
 - Extension-function files are named after what they do, not after the
-  receiver's misuse: `TaskMapping.kt`, `DurationFormatting.kt`. Never `Utils.kt`,
+  receiver or a generic bucket: `TaskMapping.kt`, `DurationFormatting.kt`. Never `Utils.kt`,
   `Helpers.kt`, `Common.kt`, `Misc.kt`, `Extensions.kt`.
 - Suffixes carry the role, and each project picks one spelling and keeps it:
 
@@ -102,11 +106,11 @@ module.
   |---|---|
   | Entry composable / stateless composable | `TasksScreen` / `TasksContent` |
   | State holder | `TasksViewModel` |
-  | UI state, events | `TasksUiState`, `TasksEvent` |
+  | UI state (with its item models and UI errors), events | `TasksUiState`, `TasksEvent` |
   | Use case (verb first) | `AddTaskUseCase`, `GetVisibleTasksUseCase` |
   | Repository interface (domain) | `TaskRepository` |
   | Repository implementation | `DefaultTaskRepository` (this repo) or `TaskRepositoryImpl` |
-  | Data source, DAO, entity, DTO | `TaskLocalDataSource`, `TaskDao`, `TaskEntity`, `TaskDto` |
+  | Data source, DAO, stored record, DTO | `TaskLocalDataSource`, `TaskDao`, `TaskEntity` or `TaskRecord` (pick one), `TaskDto` |
   | Mapping | `toDomain()` / `toDto()` in `TaskMapping.kt` |
   | Fake / test | `FakeTaskRepository` / `TaskRepositoryTest` |
   | Composition root / DI | `AppContainer`, `DataModule` |
@@ -136,14 +140,25 @@ edits, so history and review stay readable.
 
 ## 5. Enforcement
 
-Prefer tools to review comments. Detekt rules to enable (templates in
-`quality-gates.md`):
+Prefer tools to review comments. Detekt rules (templates in `quality-gates.md`).
+`MatchingDeclarationName` and `InvalidPackageDeclaration` are on by default;
+`ForbiddenClassName` is not:
 
-- `MatchingDeclarationName`: a file with one top-level class is named after it.
-- `InvalidPackageDeclaration`: the package matches the directory (set
-  `rootPackage` per module).
-- `ForbiddenClassName`: reject `Manager`, `Helper`, `Util`, `Utils`.
+- `MatchingDeclarationName`: a file with a single non-private class is named
+  after it. It does not judge files with several types, so the "main type" rule
+  for those is a review item. ktlint's `standard:filename` rule covers similar
+  ground: enable one of them, not both.
+- `InvalidPackageDeclaration`: the package matches the directory. `rootPackage`
+  is a single value in the shared `detekt.yml`, so set it to the app-wide root
+  (for example `com.example.tasks`); it cannot differ per module there.
+- `ForbiddenClassName`: `forbiddenName` takes glob patterns, so use
+  `['*Manager', '*Helper', '*Util', '*Utils']`. A bare `Manager` only matches a
+  class named exactly `Manager`.
 
-`kotlin-reviewer` flags the rest: files in the wrong layer or module, two
-independent aggregates in one file, a package past the split trigger, vague
-names, and tests that do not mirror their subject.
+`kotlin-reviewer` flags the rest: file names such as `Utils.kt` (no detekt rule
+checks file names against a deny list), files in the wrong layer or module, two
+independent aggregates in one file, a package or folder past the split trigger,
+vague names, and tests that do not mirror their subject.
+
+The sample app in this repository is deliberately flat (far below the split
+triggers) and is not gated by detekt; adopt the templates in your own project.
