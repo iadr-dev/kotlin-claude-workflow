@@ -17,6 +17,7 @@ Gradle on JDK 17 or 21.
 
 ```toml
 [versions]
+kotlin = "2.4.21"
 detekt = "2.0.0-alpha.6"   # dev.detekt 2.x; the key names in detekt.yml below are 2.x
 spotless = "8.10.4"
 ktlint = "1.8.0"
@@ -30,6 +31,7 @@ spotless-gradlePlugin = { module = "com.diffplug.spotless:spotless-plugin-gradle
 kover-gradlePlugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
 
 [plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
@@ -116,7 +118,31 @@ class QualityConventionPlugin : Plugin<Project> {
 }
 ```
 
-Apply it in each module with `plugins { id("app.quality") }`.
+Make the convention plugin resolvable from the root `settings.gradle.kts`:
+
+```kotlin
+pluginManagement {
+    includeBuild("build-logic")
+    repositories { gradlePluginPortal(); google(); mavenCentral() }
+}
+```
+
+Apply it in each module with `plugins { id("app.quality") }`. The root
+`build.gradle.kts` must declare the plugins once with `apply false`, otherwise
+every module loads its own copy of the Spotless and Kotlin classes and
+configuration fails (`Could not create task ':core:domain:spotlessKotlin' ...
+property 'taskService'`, or `NoClassDefFound KotlinBasePlugin`). The module-rule
+snippet below already contains this block; if you do not use that task, keep at
+least:
+
+```kotlin
+// root build.gradle.kts
+plugins {
+    base
+    alias(libs.plugins.kotlin.jvm) apply false   // use your own Kotlin plugin (android, multiplatform) here
+    id("app.quality") apply false
+}
+```
 
 ## config/detekt/detekt.yml (thresholds from SKILL.md §4, detekt 2.x keys)
 
@@ -190,7 +216,10 @@ For detekt 1.x, the keys are the old ones (`threshold`, `functionThreshold`,
 `constructorThreshold`, `thresholdInClasses`, `thresholdInFiles`) and
 `UnusedPrivateMember` instead of the two `UnusedPrivate*` rules.
 `InjectDispatcher` and `UnsafeCallOnNullableType` only fire in the
-type-resolution tasks, which the convention plugin above attaches to `check`.
+type-resolution tasks, which the convention plugin above attaches to `check`
+(`InjectDispatcher` also needs kotlinx-coroutines on the module's classpath).
+Because plain `detekt` also analyses main code, one violation can be reported
+by more than one task.
 For Compose projects add the `io.nlopez.compose.rules:detekt` rule set (not
 covered by these tests).
 
@@ -200,7 +229,7 @@ covered by these tests).
 kover {
     reports {
         filters { excludes { annotatedBy("*Generated*", "androidx.compose.ui.tooling.preview.Preview") } }
-        verify { rule { minBound(60) } }   // per-module overrides: domain 80, data 70
+        verify { rule { minBound(60) } } // per-module overrides: domain 80, data 70
     }
 }
 ```
@@ -211,8 +240,9 @@ the module thresholds in SKILL.md §4 but not "changed lines covered".
 ## Public API check (libraries)
 
 Apply `alias(libs.plugins.bcv)` in library modules and commit the generated
-`api/` dump (`apiDump`); `apiCheck` is attached to `check`. Do not request
-`apiDump` and `apiCheck` in the same invocation. The plugin cannot read JDK 25
+`api/` dump (`apiDump`); `apiCheck` is attached to `check` and fails with
+"Expected file with API declarations ... does not exist" until the dump exists.
+Do not request `apiDump` and `apiCheck` in the same invocation. The plugin cannot read JDK 25
 bytecode, so pin the target in the module:
 
 ```kotlin
@@ -221,7 +251,8 @@ tasks.withType<JavaCompile>().configureEach { options.release.set(17) }
 ```
 
 Kotlin's built-in ABI validation (`checkKotlinAbi`, attached to `check`) is the
-successor and is still experimental in 2.4:
+successor and is still experimental in 2.4. Run `updateKotlinAbi` once to create
+its reference dump; `checkKotlinAbi` fails without it:
 
 ```kotlin
 import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
@@ -234,13 +265,18 @@ kotlin { @OptIn(ExperimentalAbiValidation::class) abiValidation { } }
 A root task that fails when a `:feature:*` module depends on another
 `:feature:*` implementation, or a `:core:*` module depends on a `:feature:*`
 module. `:feature:x:api` modules are allowed as targets. The root project needs
-the `base` plugin so that it has a `check` task.
+the `base` plugin so that it has a `check` task, and the `apply false` plugins
+described above.
 
 ```kotlin
 // root build.gradle.kts
 import org.gradle.api.artifacts.ProjectDependency
 
-plugins { base }
+plugins {
+    base
+    alias(libs.plugins.kotlin.jvm) apply false
+    id("app.quality") apply false
+}
 
 val checkModuleDependencies = tasks.register("checkModuleDependencies") {
     group = "verification"
