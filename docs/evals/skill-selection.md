@@ -12,7 +12,7 @@ a `SKILLS_LOADED:` line listing the skills it loaded with the Skill tool. Expect
 before running. A hit means the expected skill was among the loaded skills; a wrong pick means a
 loaded skill that does not belong to the request.
 
-## Result: 31 of 32 hits, 0 wrong picks
+## Result: 31 of 32 hits on the first run (32 of 32 after one fix), 0 wrong picks
 
 | # | Request (short) | Expected | Loaded |
 |---|---|---|---|
@@ -38,7 +38,8 @@ loaded skill that does not belong to the request.
 | D2 | New laptop: is everything installed and up to date | `setup-environment` | `setup-environment` |
 | D3 | Build `:core:domain` and report whether tests pass | `build-and-verify` | `build-and-verify`, `gradle-run` |
 | D4 | List devices with the `android` tool | `android-cli` | `android-cli` |
-| D5 | Current foreground-service type requirements for targetSdk 35 | `android-cli` (docs lookup) | **none** (used `android docs`, part of the answer from memory) |
+| D5 | Current foreground-service type requirements for targetSdk 35 | `android-cli` (docs lookup) | **none** on the first run (used `android docs`, part of the answer from memory); `android-cli` after the `CLAUDE.md` fix below |
+| D6 | Exact-alarm permissions on Android 14 and what changed since Android 12 (added after the fix) | `android-cli` (docs lookup) | `android-cli`; fetched 3 pages and listed what it did not check |
 | E1 | Migrate to Jetpack Navigation 3 | `navigation-3` | `navigation-3` |
 | E2 | Edge-to-edge and insets on Android 15 | `edge-to-edge` | `edge-to-edge` |
 | E3 | Upgrade AGP 8.7 to 9 | `agp-9-upgrade` | `agp-9-upgrade` |
@@ -54,9 +55,11 @@ loaded skill that does not belong to the request.
 - The Kotlin router (`kotlin-skill-router`) was used on 5 of 8 Kotlin and Compose requests and on
   both delegated-worker briefs; the other Kotlin and Compose requests went straight to the owning
   skill.
-- D5 is the only miss. The agent followed the `CLAUDE.md` rule to use `android docs search`, but did
-  not load `android-cli` and filled part of the answer from memory. If this recurs, strengthen the
-  `CLAUDE.md` Android line.
+- D5 was the only miss. The agent used `android docs` but did not load `android-cli` and filled part
+  of the answer from memory. The Android line in `CLAUDE.md` now says to answer platform questions
+  from the fetched pages, not from memory or search snippets, and to say what could not be checked.
+  Re-run with that sentence: D5 loaded `android-cli`, fetched two pages and listed the statements it
+  had not checked; a new, similar question (D6) did the same with three pages.
 - One G2 run first omitted the required `SKILLS_LOADED:` line and was re-run; the result above is
   the re-run.
 - This is a single run per case on one machine and one model. Treat it as a regression check, not a
