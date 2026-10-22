@@ -20,6 +20,7 @@ public class GetVisibleTasksUseCase(
         hideCompleted = hideCompleted,
         hiddenCount = if (hideCompleted) completed else 0,
         completedCount = completed,
+        openCount = all.size - completed,
       )
     }
 }
@@ -30,4 +31,6 @@ public data class VisibleTasks(
   val hiddenCount: Int,
   /** Completed tasks, whether or not the "hide completed" setting currently hides them. */
   val completedCount: Int,
+  /** Tasks not yet completed, whether or not any completed ones are hidden. */
+  val openCount: Int,
 )

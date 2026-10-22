@@ -8,6 +8,7 @@ internal sealed interface TasksUiState {
     val hideCompleted: Boolean,
     val hiddenCount: Int,
     val completedCount: Int,
+    val openCount: Int,
     val draft: String,
     val draftError: DraftError?,
   ) : TasksUiState

@@ -23,6 +23,7 @@ class TasksContentTest {
       hideCompleted = false,
       hiddenCount = 0,
       completedCount = 0,
+      openCount = 1,
       draft = "",
       draftError = DraftError.Blank,
     )
@@ -53,6 +54,20 @@ class TasksContentTest {
 
     assertEquals(1L to true, completed)
     assertEquals(1, addClicks)
+  }
+
+  @Test
+  fun showsOpenCountInTitle() {
+    setContent(state.copy(openCount = 2))
+
+    compose.onNodeWithText(compose.activity.getString(R.string.tasks_title_with_open, 2)).assertExists()
+  }
+
+  @Test
+  fun showsZeroOpenWhenEverythingIsDone() {
+    setContent(state.copy(openCount = 0, completedCount = 1))
+
+    compose.onNodeWithText(compose.activity.getString(R.string.tasks_title_with_open, 0)).assertExists()
   }
 
   @Test

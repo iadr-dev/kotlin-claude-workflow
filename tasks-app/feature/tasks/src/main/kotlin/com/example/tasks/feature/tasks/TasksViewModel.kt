@@ -35,6 +35,7 @@ class TasksViewModel(
           hideCompleted = visible.hideCompleted,
           hiddenCount = visible.hiddenCount,
           completedCount = visible.completedCount,
+          openCount = visible.openCount,
           draft = draft.text,
           draftError = draft.error,
         )

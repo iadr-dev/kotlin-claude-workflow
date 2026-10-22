@@ -60,7 +60,10 @@ internal fun TasksContent(
   modifier: Modifier = Modifier,
 ) {
   Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-    Text(stringResource(R.string.tasks_title), style = MaterialTheme.typography.headlineMedium)
+    Text(
+      stringResource(R.string.tasks_title_with_open, state.openCount),
+      style = MaterialTheme.typography.headlineMedium,
+    )
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
       OutlinedTextField(
         value = state.draft,
@@ -138,6 +141,7 @@ private fun TasksContentPreview() {
           hideCompleted = false,
           hiddenCount = 0,
           completedCount = 1,
+          openCount = 1,
           draft = "",
           draftError = DraftError.Blank,
         ),
