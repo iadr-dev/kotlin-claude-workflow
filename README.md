@@ -276,6 +276,12 @@ checks. The everyday flow:
 
 Details and optional triage and project-board workflows: [`.claude/pr-workflow.md`](.claude/pr-workflow.md).
 
+Optional issue-tracker and board setup (run once per repository, user-typed):
+
+1. `/setup-issue-tracker` writes `docs/agents/issue-tracker.md`, `triage-labels.md` and `domain.md` and the `## Agent skills` block in `CLAUDE.md`.
+2. `/triage` moves issues through `needs-triage` to `ready-for-agent` with an agent brief.
+3. `/run-github-project Set up the binding for <project URL>` writes `docs/agents/run-github-project.md` (Status lanes, Priority, labels, merge policy). It needs the `gh` token `project` scope (`gh auth refresh -h github.com -s project`). Humans move issues from Backlog to Todo; the skill never works Backlog.
+
 ## Project layout
 
 ```
@@ -288,6 +294,8 @@ CLAUDE.md                 project instructions Claude reads every session
   hooks/format-kotlin.sh  auto-format hook
   agents/                 review and verification agents
   skills/                 all skills listed above
+docs/agents/              issue tracker, triage labels, domain docs, GitHub Project binding
+GLOSSARY.md               vocabulary of the environment check (Tool, Status, OK, UPDATE...)
 ```
 
 ## Status
@@ -303,7 +311,8 @@ clean-architecture Android sample app that was used to exercise the workflow and
 | Format hook with ktlint, kotlin-lsp (symbols, cross-module definitions, hover) | tested |
 | `to-plan`, `deliver-spec`, `shepherd`, with CI, two independent reviews and a squash merge (issue #2 to PR #4) | tested on a real GitHub repository |
 | `/new-feature` and `/review-pr` | tested end to end when typed by the user (Claude is blocked from invoking them itself) |
-| `run-github-project`, `triage`, `wayfinder`, `setup-issue-tracker` | not yet tested (user-invoked; need a GitHub Project board and labels) |
+| `setup-issue-tracker`, `triage` (issues #8 and #9 triaged with agent briefs), `run-github-project` `review` and `setup` (binding for Project #2, validated live, merged in PR #12) | tested on a real repository and board |
+| `run-github-project` `next` and `drain` (executing board tickets), `wayfinder` | not yet tested (issues #8 and #9 wait in Backlog; a human moves them to Todo) |
 | Physical Android phone (Samsung, Android 15): install, launch, full UI flow, logs | tested |
 | macOS and Linux | not yet tested (scripts are written to be portable) |
 
