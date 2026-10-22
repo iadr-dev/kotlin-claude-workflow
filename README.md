@@ -2,7 +2,7 @@
 
 A ready-to-use [Claude Code](https://code.claude.com) setup for Kotlin projects:
 Android (Jetpack Compose), Kotlin Multiplatform, and JVM backends or libraries.
-Everything lives in this folder (`.claude/`, `CLAUDE.md`), so it travels with the
+The workflow itself lives in `.claude/` and `CLAUDE.md`, so it travels with the
 repository and has no runtime dependency on any other repository.
 
 It gives Claude, in one place:
@@ -73,8 +73,9 @@ git clone https://github.com/iadr-dev/kotlin-claude-workflow.git my-project
 cd my-project
 ```
 
-Then adjust the build commands in `CLAUDE.md` to your modules. To start with a
-fresh history, `rm -rf .git && git init`.
+Then adjust the build commands in `CLAUDE.md` to your modules, and reset the files
+that are specific to this repository (see [Reset the repository-specific files](#reset-the-repository-specific-files)).
+To start with a fresh history, `rm -rf .git && git init`.
 
 **Option B: copy into an existing project** (Git Bash, macOS or Linux):
 
@@ -91,7 +92,7 @@ rm -rf /tmp/kcw
 Then, in your project:
 
 1. Edit `CLAUDE.md`: adjust the build commands to your modules.
-2. Add CI that runs your Gradle checks on every pull request (see the [CI template (GitHub Actions)](.claude/skills/kotlin-architecture/references/quality-gates.md#ci-template-github-actions)); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
+2. Add CI that runs your Gradle checks on every pull request (see the [CI template (GitHub Actions)](.claude/skills/kotlin-architecture/references/quality-gates.md#ci-template-github-actions), which has not been run end to end); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
 3. Restart Claude Code in the project and accept the plugin prompts from `.claude/settings.json`.
 4. Ask Claude to run `setup-environment` and follow its proposals.
 5. Try it: `/new-feature <a small change>`.
@@ -100,11 +101,28 @@ If a `.claude/` folder or `CLAUDE.md` already exists, merge instead of
 overwriting: copy the folders under `.claude/skills` and `.claude/agents`, and
 merge `settings.json` by hand.
 
+### Reset the repository-specific files
+
+This repository dogfoods its own GitHub setup, so a few files describe **this**
+repository and its Project board, not yours:
+
+- the `## Agent skills` block at the end of `CLAUDE.md` (tracker, labels, domain docs, Project);
+- `docs/agents/` (tracker, labels, domain docs, and `run-github-project.md`, which names Project #2 of `iadr-dev`);
+- `GLOSSARY.md` (the vocabulary of the environment check).
+
+After a clone, delete `docs/agents/`, `GLOSSARY.md` and that block. After a copy
+(Option B), do not copy `docs/agents/` and delete the block from the copied
+`CLAUDE.md`. If you want the GitHub workflows, run `/setup-issue-tracker` (and later
+`/run-github-project Set up the binding for <project URL>`) to write your own.
+
 **Plugin form (later).** Skills, agents and hooks can also be packaged as a Claude
 plugin (`.claude-plugin/plugin.json` plus a marketplace entry, installed with
 `/plugin install`) so several projects share one updated copy. A plugin cannot
-carry `CLAUDE.md` or permissions, and scripts must use `${CLAUDE_PLUGIN_ROOT}`
-paths, so this repository ships as copyable files for now.
+carry `CLAUDE.md` or permissions. Hook commands in a plugin use
+`${CLAUDE_PLUGIN_ROOT}`, which is an error in a `settings.json` hook, and plugin
+skills are invoked as `/<plugin>:<skill>`, so serving both forms from the same
+files needs small changes (an open question, tracked as issue #19). This repository
+therefore ships as copyable files for now.
 
 ## The workflow
 
@@ -123,12 +141,17 @@ Claude pauses for you at two points only: **plan approval** and **ship**
 
 ## Commands you type
 
-Two commands only run when you type them:
+Seven skills only run when you type them (Claude cannot start them itself):
 
 | Command | Example |
 |---|---|
 | `/new-feature <description or issue #>` | `/new-feature Add a "Clear completed" button that deletes all completed tasks` |
 | `/review-pr [PR number] [aspects] [parallel]` | `/review-pr` · `/review-pr errors tests` · `/review-pr 12 parallel` |
+| `/setup-issue-tracker` | writes the tracker, label and domain-docs configuration for a repository |
+| `/triage [issue #]` | `/triage Let's look at #42` moves an issue through the triage states and writes an agent brief |
+| `/run-github-project <mode>` | `review`, `setup`, `next` (one ticket) or `drain` (until the board is empty); asks before merging |
+| `/wayfinder <idea or map #>` | charts a map of decision tickets, then resolves them one at a time |
+| `/implement-with-subagents` | delegated implementation of supplied tickets |
 
 `/review-pr` needs a diff to look at: uncommitted changes in a git repository, or a
 GitHub pull request number. Aspects are `code`, `errors`, `tests`, `types`,
@@ -199,9 +222,9 @@ whose description tells Claude when to use it.
 | `to-plan` | Implementation plan from one issue or an in-chat task |
 | `deliver-spec` | Deliver an approved spec through a reviewed pull request |
 | `shepherd` | Poll a PR, triage review comments, repair CI, never merge on its own |
-| `implement-with-subagents` | Delegated implementation of supplied tickets |
-| `run-github-project` | Operate a GitHub Project board workflow |
-| `triage`, `wayfinder`, `setup-issue-tracker` | Issue triage, large-work planning, tracker and label setup |
+| `implement-with-subagents` | Delegated implementation of supplied tickets (user-typed) |
+| `run-github-project` | Operate a GitHub Project board workflow: `next` delivers one ticket, `drain` runs the board until empty (user-typed) |
+| `triage`, `wayfinder`, `setup-issue-tracker` | Issue triage, large-work planning as a map of decision tickets, tracker and label setup (user-typed) |
 
 See [`.claude/pr-workflow.md`](.claude/pr-workflow.md) for the step-by-step PR flow.
 
@@ -321,7 +344,9 @@ clean-architecture Android sample app that was used to exercise the workflow and
 | `setup-issue-tracker`, `triage` (issues #8 and #9 triaged with agent briefs), `run-github-project` `review` and `setup` (binding for Project #2, validated live, merged in PR #12) | tested on a real repository and board |
 | `run-github-project` `next` (issue #8 to PR #15: claim, fast-path plan, implementation, independent review and repair, CI, merge, close, board to Done) | tested on a real repository and board |
 | `run-github-project` `drain` (issue #9 to PR #17: claim, full `to-plan` plan, implementation, independent review and repair, CI, watcher wait at the merge gate, merge, close, board to Done) | tested on a real repository and board |
-| `wayfinder` | not yet tested |
+| `wayfinder` (map issue #19: charting, three parallel research agents, resolving tickets, the live blocking gate) | tested on a real repository; working a human-in-the-loop `grilling` ticket is not yet tested |
+| `CHECK_ENV_PIN` (pinned tools in the environment check), `test_check_env.sh` with 22 cases | tested on Windows Git Bash only |
+| The CI template (GitHub Actions) in `quality-gates.md` | checked with `actionlint` and against the earlier proven workflow, never run end to end |
 | Physical Android phone (Samsung, Android 15): install, launch, full UI flow, logs | tested |
 | macOS and Linux | not yet tested (scripts are written to be portable) |
 
@@ -336,3 +361,4 @@ clean-architecture Android sample app that was used to exercise the workflow and
 | `android docs <query>` is not a valid command | Use `android docs search "<query>"` |
 | Wrapper upgrade exits with `9009` on Windows | Re-run once; the first pass rewrites the running `gradlew.bat` |
 | A tool shows `MISSING` or `UPDATE` | Run `setup-environment` and follow its proposals |
+| A tool is always `UPDATE` but you want to stay on its version | Set `CHECK_ENV_PIN=gh,ktlint` (comma-separated, case-insensitive); pinned tools show `OK` with a `pinned:` note |
