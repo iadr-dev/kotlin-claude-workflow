@@ -7,9 +7,9 @@ repository. Treat the first run as a trial and watch what each step pushes.
 
 1. A git repo with a GitHub `origin` (`git remote get-url origin`).
 2. `gh auth status` shows you logged in (`gh auth login` otherwise).
-3. CI that runs the project checks on every PR (GitHub Actions running
-   `./gradlew test lint` or the project's equivalents). The skills use CI as
-   confirmation, and `to-plan` proves baselines from green CI. Ask Claude to
+3. CI that runs the project checks on every PR (GitHub Actions; see the
+   [CI template (GitHub Actions)](skills/kotlin-architecture/references/quality-gates.md#ci-template-github-actions)).
+   The skills use CI as confirmation, and `to-plan` proves baselines from green CI. Ask Claude to
    create the workflow file if the repo has none.
 4. `bash .claude/skills/setup-environment/scripts/check-env.sh .` is all OK.
 

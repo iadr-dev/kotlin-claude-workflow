@@ -91,7 +91,7 @@ rm -rf /tmp/kcw
 Then, in your project:
 
 1. Edit `CLAUDE.md`: adjust the build commands to your modules.
-2. Add CI that runs your Gradle checks on every pull request (for example `./gradlew test lint`); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
+2. Add CI that runs your Gradle checks on every pull request (see the [CI template (GitHub Actions)](.claude/skills/kotlin-architecture/references/quality-gates.md#ci-template-github-actions)); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
 3. Restart Claude Code in the project and accept the plugin prompts from `.claude/settings.json`.
 4. Ask Claude to run `setup-environment` and follow its proposals.
 5. Try it: `/new-feature <a small change>`.
