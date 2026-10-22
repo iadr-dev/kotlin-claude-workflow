@@ -37,5 +37,3 @@ internal class DefaultTaskRepository(
     writes.withLock { withContext(ioDispatcher) { local.deleteCompleted() } }
   }
 }
-
-internal fun TaskRecord.toDomain(): Task = Task(id = TaskId(id), title = title, isCompleted = completedAtMillis != null)
