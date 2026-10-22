@@ -504,5 +504,36 @@ cannot change under the same reference. That is what SonarCloud
 for first-party and third-party actions alike. The SHAs are the commits behind the
 `v4` tags that the template was tested with; newer majors exist (checkout v7,
 setup-java v6, setup-gradle v6) and need a re-test before the template moves to
-them. A Dependabot `github-actions` update can keep SHA pins current (not tested here). To use the readable Tag-pinned action form instead, replace
-each `@<sha> # v4` with `@v4`.
+them. To use the readable Tag-pinned action form instead, replace each
+`@<sha> # v4` with `@v4`.
+
+### Keeping the pins current (Dependabot)
+
+Nothing updates a SHA pin by itself. Commit this file as
+`.github/dependabot.yml` on the default branch and turn on "Dependabot version
+updates" in the repository's security settings:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"] # one pull request for all action updates
+    # Skip major versions (they then need a manual bump):
+    # ignore:
+    #   - dependency-name: "*"
+    #     update-types: ["version-update:semver-major"]
+```
+
+Per GitHub's documentation, Dependabot updates the version comment on the same
+line as a SHA (`actions/checkout@<commit> # v4`), so the comment form above is what
+it expects. Dependabot **security alerts do not cover SHA-pinned actions** (they
+only cover semantic-version references); version updates still do. Majors are not
+ignored by default on purpose: the pull request runs your CI before it merges, which
+is the re-test a new major needs. The `groups` behaviour and whether Dependabot
+opens pull requests for major bumps by default could not be tested here, because a
+Dependabot configuration only takes effect on a default branch.
