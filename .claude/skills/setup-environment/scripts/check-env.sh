@@ -3,10 +3,12 @@
 # Prints one line per tool: STATUS  name  installed  latest  note
 # STATUS: OK | UPDATE (older than latest) | MISSING (required) | OPTIONAL (not installed) | OLD (below minimum)
 # Usage: bash check-env.sh [--offline] [project-dir]
+# Env: CHECK_ENV_PIN=gh,ktlint  comma-separated pinned tools; an UPDATE for them is reported OK (pinned).
 
 offline=0
 [ "$1" = "--offline" ] && { offline=1; shift; }
 project="${1:-.}"
+pins=",$(printf '%s' "$CHECK_ENV_PIN" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]'),"
 
 case "$(uname -s)" in
   MINGW*|MSYS*|CYGWIN*) os=windows ;;
@@ -29,15 +31,16 @@ report() { # status name installed latest note
   printf '%-9s %-16s %-16s %-14s %s\n' "$1" "$2" "${3:--}" "${4:--}" "$5"
 }
 judge() { # name installed latest required(1/0) note [minimum]
-  local name=$1 inst=$2 latest=$3 req=$4 note=$5 min=$6
+  local name=$1 inst=$2 latest=$3 req=$4 note=$5 min=$6 pinned=0
+  case "$pins" in *",$name,"*) pinned=1 ;; esac
   if [ -z "$inst" ]; then
     [ "$req" = 1 ] && report MISSING "$name" "" "$latest" "$note" || report OPTIONAL "$name" "" "$latest" "$note"
   elif [ -n "$min" ] && ver_lt "$inst" "$min"; then
     report OLD "$name" "$inst" "$latest" "needs >= $min. $note"
   elif [ -n "$latest" ] && ver_lt "$inst" "$latest"; then
-    report UPDATE "$name" "$inst" "$latest" "$note"
+    [ $pinned = 1 ] && report OK "$name" "$inst" "$latest" "pinned: newer $latest available" || report UPDATE "$name" "$inst" "$latest" "$note"
   else
-    report OK "$name" "$inst" "$latest" ""
+    report OK "$name" "$inst" "$latest" "$([ $pinned = 1 ] && [ $offline = 1 ] && echo pinned)"
   fi
 }
 
