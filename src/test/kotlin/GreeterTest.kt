@@ -4,6 +4,6 @@ import kotlin.test.assertEquals
 class GreeterTest {
     @Test
     fun greetsByName() {
-        assertEquals("Hello, CI", greet("CI"))
+        assertEquals("Hello, WRONG", greet("CI"))
     }
 }
