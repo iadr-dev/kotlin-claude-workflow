@@ -45,3 +45,17 @@ Run all Gradle through the `gradle-run` skill. Typical tasks (scope to touched m
 Run the `setup-environment` skill. It checks every tool against its latest
 version, proposes installs per OS, and covers plugins (declared in
 `.claude/settings.json`), Android skills, `gh auth`, and devices.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in GitHub Issues for `iadr-dev/kotlin-claude-workflow`, using the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
