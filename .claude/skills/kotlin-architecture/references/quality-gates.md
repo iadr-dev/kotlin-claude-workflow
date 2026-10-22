@@ -241,9 +241,10 @@ type-resolution tasks, which the convention plugin above attaches to `check`
 Because plain `detekt` also analyses main code, one violation can be reported
 by more than one task.
 
-**Compose projects.** Add the Compose rules (the same artifact serves detekt 1.x and
-2.x; 0.6.3 and later target detekt 2.0.0-alpha.6) to each Compose module, and
-enable the opt-in rules you want in `detekt.yml`:
+**Compose projects.** Add the Compose rules to each Compose module (0.6.3 and later
+target detekt 2.0.0-alpha.6, the version tested here; the project's compatibility
+table lists 0.4.x for detekt 1.23.x, which was not tested), and enable the opt-in
+rules you want in `detekt.yml`:
 
 ```kotlin
 dependencies { detektPlugins(libs.detekt.composeRules) }
@@ -300,6 +301,8 @@ it has no `check`) and use the catalog alias, not the bare plugin id:
 // root build.gradle.kts
 plugins {
     base
+    alias(libs.plugins.kotlin.jvm) apply false
+    id("app.quality") apply false
     alias(libs.plugins.kover)
 }
 
@@ -312,9 +315,9 @@ dependencies {
 kover { reports { verify { rule { minBound(60) } } } }
 ```
 
-If you also use the module dependency rule below, merge the two root files into one
-`plugins` block: `base`, `alias(libs.plugins.kotlin.jvm) apply false`,
-`id("app.quality") apply false` and `alias(libs.plugins.kover)`.
+The `apply false` lines are required for the same reason as above (without them
+configuration fails). The module dependency rule below needs the same root file,
+so keep everything in one `plugins` block and add that rule's task to it.
 
 ## Public API check (libraries)
 
@@ -475,6 +478,5 @@ cannot change under the same reference. That is what SonarCloud
 for first-party and third-party actions alike. The SHAs are the commits behind the
 `v4` tags that the template was tested with; newer majors exist (checkout v7,
 setup-java v6, setup-gradle v6) and need a re-test before the template moves to
-them. A Dependabot `github-actions` update keeps SHA pins current and understands
-the `# v4` comment. To use the readable Tag-pinned action form instead, replace
+them. A Dependabot `github-actions` update can keep SHA pins current (not tested here). To use the readable Tag-pinned action form instead, replace
 each `@<sha> # v4` with `@v4`.

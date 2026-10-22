@@ -117,8 +117,9 @@ Rules:
 Use these as review findings and as detekt/Kover gates. Exceeding one is a
 finding to justify or fix, not an automatic rewrite. `references/quality-gates.md`
 has the tested setup; note that the detekt rules that need type resolution
-(`InjectDispatcher`, `UnsafeCallOnNullableType`) only run if `detektMain` and
-`detektTest` are attached to `check`, which its convention plugin does.
+(`InjectDispatcher`, `UnsafeCallOnNullableType`) only run if the typed detekt tasks
+(`detektMain` and `detektTest`, or `detektDebug` and `detektRelease` on Android) are
+attached to `check`, which its convention plugin does.
 
 | Metric | Threshold | Tool |
 |---|---|---|
@@ -128,7 +129,7 @@ has the tested setup; note that the detekt rules that need type resolution
 | Class length | ≤ 600 lines | detekt `LargeClass` |
 | Parameters | ≤ 6 function / 7 constructor (composables exempt for modifiers/slots) | detekt `LongParameterList` |
 | Nesting depth | ≤ 4 | detekt `NestedBlockDepth` |
-| Functions per class | ≤ 20 non-private (`ignorePrivate` still counts `internal`) | detekt `TooManyFunctions` |
+| Functions per class / file | ≤ 20 non-private each (`ignorePrivate` still counts `internal`) | detekt `TooManyFunctions` |
 | File length | ≤ 500 lines | review (detekt `LargeClass` measures class length) |
 | Test coverage (line) | domain ≥ 80%, data ≥ 70%, every other module ≥ 60% (a per-module `coverage.minLine` property); an overall figure needs a root aggregation project; "changed lines covered" is a review item | Kover `koverVerify` |
 | Module dependency rule | zero violations of §1/§2 | review, `./gradlew :app:dependencies`, or a module-graph assertion plugin |

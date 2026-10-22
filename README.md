@@ -93,7 +93,7 @@ rm -rf /tmp/kcw
 Then, in your project:
 
 1. Edit `CLAUDE.md`: adjust the build commands to your modules.
-2. Add CI that runs your Gradle checks on every pull request (see the [CI template (GitHub Actions)](.claude/skills/kotlin-architecture/references/quality-gates.md#ci-template-github-actions), which ran green on a minimal JVM project, not yet on Android or KMP); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
+2. Add CI that runs your Gradle checks on every pull request (see the [CI template (GitHub Actions)](.claude/skills/kotlin-architecture/references/quality-gates.md#ci-template-github-actions), which ran green on a JVM, an Android and a KMP sample project); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
 3. Restart Claude Code in the project and accept the plugin prompts from `.claude/settings.json`.
 4. Ask Claude to run `setup-environment` and follow its proposals.
 5. Try it: `/new-feature <a small change>`.
@@ -293,7 +293,7 @@ Defined in `.claude/skills/kotlin-architecture/` and checked by `kotlin-reviewer
 - Dependencies point inward; domain is pure Kotlin.
 - Add a use case when it combines repositories, holds a business rule, is reused, or is multi-step. Otherwise the ViewModel calls the repository.
 - `internal` by default; no feature-to-feature implementation dependencies; versions only in `gradle/libs.versions.toml`; shared build logic in convention plugins.
-- Thresholds: cyclomatic complexity ≤ 15, function ≤ 60 lines, class ≤ 600 lines, ≤ 6 parameters, nesting ≤ 4, line coverage domain ≥ 80% / data ≥ 70% / overall ≥ 60%.
+- Thresholds: cyclomatic complexity ≤ 15, function ≤ 60 lines, class ≤ 600 lines, ≤ 6 parameters, nesting ≤ 4, line coverage domain ≥ 80% / data ≥ 70% / other modules ≥ 60% (an overall figure needs a root aggregation project).
 - Folder, package and file naming (package mirrors path, file named after its main type, role suffixes, split at ~15 files) is in `references/structure-and-naming.md`.
 - Quality-gate templates (Spotless and ktlint, detekt, Kover, convention plugins) are in `references/quality-gates.md`.
 
@@ -338,7 +338,7 @@ clean-architecture Android sample app that was used to exercise the workflow and
 | Area | State |
 |---|---|
 | `setup-environment` check, `gradle-run`, `build-and-verify`, `run-on-device` on an emulator | tested |
-| `kotlin-architecture`, Kotlin and Compose skills, `kotlin-reviewer` and the four review agents, `android-verifier` | tested (the new section 8 naming rules and the detekt templates have not been run) |
+| `kotlin-architecture`, Kotlin and Compose skills, `kotlin-reviewer` and the four review agents, `android-verifier` | tested (the quality-gate templates were rebuilt from the doc and run on real projects; see the rows below) |
 | Format hook with ktlint, kotlin-lsp (symbols, cross-module definitions, hover) | tested |
 | `to-plan`, `deliver-spec`, `shepherd`, with CI, two independent reviews and a squash merge (issue #2 to PR #4) | tested on a real GitHub repository |
 | `/new-feature` and `/review-pr` | tested end to end when typed by the user (Claude is blocked from invoking them itself) |
@@ -347,7 +347,8 @@ clean-architecture Android sample app that was used to exercise the workflow and
 | `run-github-project` `drain` (issue #9 to PR #17: claim, full `to-plan` plan, implementation, independent review and repair, CI, watcher wait at the merge gate, merge, close, board to Done) | tested on a real repository and board |
 | `wayfinder` (map issue #19: charting, three parallel research agents, resolving tickets, the live blocking gate) | tested on a real repository; working a human-in-the-loop `grilling` ticket is not yet tested |
 | `CHECK_ENV_PIN` (pinned tools in the environment check), `test_check_env.sh` with 22 cases | tested on Windows Git Bash only |
-| The CI template (GitHub Actions) in `quality-gates.md` | run on GitHub Actions against a minimal Kotlin JVM project: green with a passing test, red with a broken one; not run on Android or KMP |
+| The quality-gate templates in `quality-gates.md` (convention plugin, Spotless, detekt 2.x and 1.x, Compose rules, Kover per-module and overall bounds, API check, module rule) | built from the doc and run on a multi-module JVM project (every gate under `check`, each red when violated) and an Android Compose project; detekt 1.x on Temurin 17 and 21 in Actions |
+| The CI template (GitHub Actions) in `quality-gates.md` | SHA-pinned and run on GitHub Actions on a JVM, an Android (`check assembleDebug`) and a KMP project (`ubuntu-latest` and `macos-latest`); green with a passing test, red with a broken one |
 | Physical Android phone (Samsung, Android 15): install, launch, full UI flow, logs | tested |
 | macOS and Linux | not yet tested (scripts are written to be portable) |
 
