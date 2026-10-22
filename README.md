@@ -326,6 +326,7 @@ CLAUDE.md                 project instructions Claude reads every session
   agents/                 review and verification agents
   skills/                 all skills listed above
 docs/agents/              issue tracker, triage labels, domain docs, GitHub Project binding
+docs/evals/               skill-selection check: prompts, expected skills and results
 GLOSSARY.md               vocabulary of the environment check (Tool, Status, OK, UPDATE...)
 LICENSE                   MIT
 ```
@@ -349,6 +350,7 @@ projects built for each test (none of them is kept in this repository):
 | `CHECK_ENV_PIN` (pinned tools in the environment check), `test_check_env.sh` with 22 cases | tested on Windows Git Bash only |
 | The quality-gate templates in `quality-gates.md` (convention plugin, Spotless, detekt 2.x and 1.x, Compose rules, Kover per-module and overall bounds, API check, module rule) | rebuilt from the doc and run on a multi-module JVM project (every gate under `check`, each red when violated), an Android Compose project, product flavors, and a KMP module with Compose Multiplatform; detekt 1.x on Temurin 17 and 21 in Actions. iOS targets were not built (Windows host) |
 | The CI template (GitHub Actions) in `quality-gates.md`, with its SHA-pinned actions and Dependabot block | run on GitHub Actions on a JVM, an Android (`check assembleDebug`) and a KMP project (`ubuntu-latest` and `macos-latest`) with the current pins, green on all; red with a broken test on the earlier `v4` pins. The Dependabot block follows GitHub's documentation but was not run (it only takes effect on a default branch) |
+| Skill selection: do agents load the right skill from a plain request? 32 realistic prompts (Kotlin and Compose, architecture, engineering practice, Android CLI and device flows, official Android skills, delegated-worker briefs, negative controls) | 31 of 32 hit the expected skill, no wrong picks; one documentation lookup loaded no skill. Prompts and results: [`docs/evals/skill-selection.md`](docs/evals/skill-selection.md) |
 | Physical Android phone (Samsung, Android 15): install, launch, full UI flow, logs | tested |
 | macOS and Linux for the repository's own scripts (`check-env.sh`, `gradle-run`, the format hook) | not yet tested (written to be portable); the CI template itself did run on `ubuntu-latest` and `macos-latest` |
 
