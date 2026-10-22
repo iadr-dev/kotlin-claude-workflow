@@ -146,7 +146,7 @@ Seven skills only run when you type them (Claude cannot start them itself):
 
 | Command | Example |
 |---|---|
-| `/new-feature <description or issue #>` | `/new-feature Add a "Clear completed" button that deletes all completed tasks` |
+| `/new-feature <description or issue #>` | `/new-feature Show an empty state when the order list has no items` |
 | `/review-pr [PR number] [aspects] [parallel]` | `/review-pr` · `/review-pr errors tests` · `/review-pr 12 parallel` |
 | `/setup-issue-tracker` | writes the tracker, label and domain-docs configuration for a repository |
 | `/triage [issue #]` | `/triage Let's look at #42` moves an issue through the triage states and writes an agent brief |
@@ -340,7 +340,7 @@ projects built for each test (none of them is kept in this repository):
 | `setup-environment` check, `gradle-run`, `build-and-verify`, `run-on-device` on an emulator | tested |
 | `kotlin-architecture`, Kotlin and Compose skills, `kotlin-reviewer` and the four review agents, `android-verifier` | tested (the quality-gate templates were rebuilt from the doc and run on real projects; see the rows below) |
 | Format hook with ktlint, kotlin-lsp (symbols, cross-module definitions, hover) | tested |
-| `to-plan`, `deliver-spec`, `shepherd`, with CI, two independent reviews and a squash merge (issue #2 to PR #4) | tested on a real GitHub repository |
+| `to-plan`, `deliver-spec`, `shepherd`, with CI, two independent reviews and a squash merge | tested on a real GitHub repository |
 | `/new-feature` and `/review-pr` | tested end to end when typed by the user (Claude is blocked from invoking them itself) |
 | `setup-issue-tracker`, `triage` (issues #8 and #9 triaged with agent briefs), `run-github-project` `review` and `setup` (binding for Project #2, validated live, merged in PR #12) | tested on a real repository and board |
 | `run-github-project` `next` (issue #8 to PR #15: claim, fast-path plan, implementation, independent review and repair, CI, merge, close, board to Done) | tested on a real repository and board |
