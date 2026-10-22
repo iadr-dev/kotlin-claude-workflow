@@ -1,0 +1,19 @@
+[versions]
+androidGradlePlugin = "9.4.1"
+kotlin = "2.4.21"
+junit = "4.13.2"
+detekt = "2.0.0-alpha.6"
+spotless = "8.10.4"
+ktlint = "1.8.0"
+kover = "0.9.11"
+
+[libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
+detekt-gradle-plugin = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+spotless-gradle-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
+kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

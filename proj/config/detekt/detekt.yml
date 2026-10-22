@@ -1,0 +1,60 @@
+complexity:
+  CyclomaticComplexMethod:
+    allowedComplexity: 15
+    ignoreSimpleWhenEntries: true
+  CognitiveComplexMethod:
+    active: true
+    allowedComplexity: 15
+  LongMethod:
+    allowedLines: 60
+    ignoreAnnotated: ['Composable']   # composables measured in review instead
+  LargeClass:
+    allowedLines: 600
+  LongParameterList:
+    allowedFunctionParameters: 6
+    allowedConstructorParameters: 7
+    ignoreDefaultParameters: true
+    ignoreAnnotated: ['Composable']
+  NestedBlockDepth:
+    allowedDepth: 4
+  TooManyFunctions:
+    allowedFunctionsPerClass: 20
+    allowedFunctionsPerFile: 20
+    ignorePrivate: true
+
+style:
+  ForbiddenComment:
+    active: false
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreAnnotated: ['Composable', 'Preview']
+  UnusedPrivateProperty:
+    active: true
+  UnusedPrivateFunction:
+    active: true
+
+potential-bugs:
+  UnsafeCallOnNullableType:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/*Test.kt']
+
+coroutines:
+  GlobalCoroutineUsage:
+    active: true
+  InjectDispatcher:
+    active: true
+  RedundantSuspendModifier:
+    active: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+  MatchingDeclarationName:
+    active: true
+  InvalidPackageDeclaration:
+    active: true
+    rootPackage: 'com.example.app'   # app-wide root: one value for every module
+    requireRootInDeclaration: true
+  ForbiddenClassName:
+    active: true
+    forbiddenName: ['*Manager', '*Helper', '*Util', '*Utils']   # glob patterns
