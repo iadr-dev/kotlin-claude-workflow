@@ -1,6 +1,6 @@
 ---
 name: kotlin-architecture
-description: Use when creating modules, adding a feature that spans layers, deciding where code belongs, reviewing a change for architecture/maintainability/scalability, setting up code standards or quality gates (detekt, ktlint, Kover, dependency rules), or judging architecture metrics. Covers clean architecture, modularization, and code-quality thresholds for Android, Kotlin Multiplatform, and JVM backend projects. Complements the Kotlin/Compose skills (kotlin-*, compose-*), which own code-level Kotlin/Compose decisions.
+description: Use when creating modules, adding a feature that spans layers, deciding where code belongs or how to name and organize folders, packages and files, reviewing a change for architecture/maintainability/scalability, setting up code standards or quality gates (detekt, ktlint, Kover, dependency rules), or judging architecture metrics. Covers clean architecture, modularization, and code-quality thresholds for Android, Kotlin Multiplatform, and JVM backend projects. Complements the Kotlin/Compose skills (kotlin-*, compose-*), which own code-level Kotlin/Compose decisions.
 ---
 
 # Kotlin architecture and code quality
@@ -107,7 +107,7 @@ Rules:
 - Follow [Kotlin coding conventions](https://kotlinlang.org/docs/coding-conventions.html); Android projects also follow the Android Kotlin style guide.
 - Formatting is enforced by tools, never by review: ktlint (or ktfmt) via Spotless, with `.editorconfig` committed.
 - Static analysis: detekt with the project `config/detekt/detekt.yml` (template in `references/quality-gates.md`); Android lint for Android modules. New code adds no new baseline entries.
-- Naming: packages by feature (`com.x.feature.login`), not by type (`com.x.viewmodels`). Classes are nouns, functions verbs, booleans `is/has/should`.
+- Naming: packages by feature (`com.x.feature.login`), not by type (`com.x.viewmodels`). Classes are nouns, functions verbs, booleans `is/has/should`. Folder layout, package roots, file naming and split triggers: §8.
 - No `!!` outside tests; no `lateinit` for values that can be constructor parameters; no `GlobalScope`; no mutable public state (`MutableStateFlow` exposed publicly).
 - Immutability first: `val`, read-only collections, `data class` copies for state.
 - Public APIs get KDoc when the behavior is not obvious from the name and types.
@@ -126,7 +126,7 @@ finding to justify or fix, not an automatic rewrite.
 | Parameters | ≤ 6 function / 7 constructor (composables exempt for modifiers/slots) | detekt `LongParameterList` |
 | Nesting depth | ≤ 4 | detekt `NestedBlockDepth` |
 | Functions per class | ≤ 20 public | detekt `TooManyFunctions` |
-| File length | ≤ 500 lines | detekt `LargeClass`/review |
+| File length | ≤ 500 lines | review (detekt `LargeClass` measures class length) |
 | Test coverage (line) | domain ≥ 80%, data ≥ 70%, overall ≥ 60%; changed lines covered | Kover `koverVerify` |
 | Module dependency rule | zero violations of §1/§2 | review, `./gradlew :app:dependencies`, or a module-graph assertion plugin |
 | Public API drift (libraries) | zero unreviewed changes | BCV `apiCheck` / Metalava |
@@ -150,9 +150,22 @@ finding to justify or fix, not an automatic rewrite.
 4. Are fakes for new interfaces added in `:core:testing`?
 5. Do metrics in §4 still hold for touched files?
 6. Can the feature be removed by deleting its module plus one DI/navigation registration?
+7. Do new files follow §8 (package matches path, file named after its main type, no catch-all `Utils`, no package past ~15 files)?
 
 ## 7. Bootstrapping quality gates
 
 When the project lacks them, propose (don't silently add) the setup in
 `references/quality-gates.md`: Spotless + ktlint, detekt config, Kover,
 convention plugins, and the CI `check` aggregate. Ask before adding plugins.
+
+## 8. Folders, packages and file naming
+
+A large project has hundreds of files, so the path and the name must predict
+where code lives. Read [references/structure-and-naming.md](references/structure-and-naming.md)
+for the full rules. In short:
+
+- The package mirrors the directory; each module has one root (`com.x.feature.login`). Group by feature or subdomain first, by role second; never `utils`, `common`, `managers`.
+- A file is named after its main top-level type. Small types that always change together may share a file; independent aggregates (two repositories, two fakes) may not.
+- Suffixes carry the role (`*Screen`, `*ViewModel`, `*UiState`, `*UseCase`, `*Repository`, `Default*Repository`, `*DataSource`, `Fake*`, `*Test`); pick one spelling per project.
+- Tests mirror the source tree. Do not create empty folders ahead of need.
+- Split a package at ~15 files, a file at 500 lines; do moves in their own commit.

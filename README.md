@@ -265,6 +265,7 @@ Defined in `.claude/skills/kotlin-architecture/` and checked by `kotlin-reviewer
 - Add a use case when it combines repositories, holds a business rule, is reused, or is multi-step. Otherwise the ViewModel calls the repository.
 - `internal` by default; no feature-to-feature implementation dependencies; versions only in `gradle/libs.versions.toml`; shared build logic in convention plugins.
 - Thresholds: cyclomatic complexity ≤ 15, function ≤ 60 lines, class ≤ 600 lines, ≤ 6 parameters, nesting ≤ 4, line coverage domain ≥ 80% / data ≥ 70% / overall ≥ 60%.
+- Folder, package and file naming (package mirrors path, file named after its main type, role suffixes, split at ~15 files) is in `references/structure-and-naming.md`.
 - Quality-gate templates (Spotless and ktlint, detekt, Kover, convention plugins) are in `references/quality-gates.md`.
 
 ## GitHub and pull requests
@@ -311,10 +312,11 @@ Checked on Windows 11 with Git Bash, Gradle 9.8.2, AGP 9.4.1, Kotlin 2.4.21:
 | Area | State |
 |---|---|
 | `setup-environment` check, `gradle-run`, `build-and-verify`, `run-on-device` on an emulator | tested |
-| `kotlin-architecture`, Kotlin and Compose skills, `kotlin-reviewer` and the four review agents, `android-verifier` | tested |
+| `kotlin-architecture`, Kotlin and Compose skills, `kotlin-reviewer` and the four review agents, `android-verifier` | tested (the new section 8 naming rules and the detekt templates have not been run) |
 | Format hook with ktlint, kotlin-lsp (symbols, cross-module definitions, hover) | tested |
-| `/new-feature` and `/review-pr` run end to end | not yet tested |
-| GitHub skills (`to-plan`, `deliver-spec`, `shepherd`, `run-github-project`, `triage`, `wayfinder`) | not yet tested (need a repository) |
+| `to-plan`, `deliver-spec`, `shepherd`, with CI, two independent reviews and a squash merge (issue #2 to PR #4) | tested on a real GitHub repository |
+| `/new-feature` and `/review-pr` | not yet tested: they only run when you type them, and Claude is blocked from invoking them itself |
+| `run-github-project`, `triage`, `wayfinder`, `setup-issue-tracker` | not yet tested (user-invoked; need a GitHub Project board and labels) |
 | Physical Android device | not yet tested |
 | macOS and Linux | not yet tested (scripts are written to be portable) |
 

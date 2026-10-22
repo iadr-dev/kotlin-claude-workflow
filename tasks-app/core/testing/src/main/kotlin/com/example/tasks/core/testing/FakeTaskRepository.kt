@@ -1,6 +1,5 @@
 package com.example.tasks.core.testing
 
-import com.example.tasks.core.domain.SettingsRepository
 import com.example.tasks.core.domain.Task
 import com.example.tasks.core.domain.TaskId
 import com.example.tasks.core.domain.TaskRepository
@@ -31,15 +30,5 @@ class FakeTaskRepository(initial: List<Task> = emptyList()) : TaskRepository {
 
   override suspend fun clearCompleted() {
     tasks.update { list -> list.filterNot { it.isCompleted } }
-  }
-}
-
-class FakeSettingsRepository(hideCompleted: Boolean = false) : SettingsRepository {
-  private val hide = MutableStateFlow(hideCompleted)
-
-  override fun observeHideCompleted(): Flow<Boolean> = hide
-
-  override suspend fun setHideCompleted(hide: Boolean) {
-    this.hide.value = hide
   }
 }

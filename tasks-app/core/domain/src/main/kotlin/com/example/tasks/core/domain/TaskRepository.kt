@@ -12,9 +12,3 @@ public interface TaskRepository {
   /** Permanently deletes every completed task. Open tasks are untouched; with none completed it is a no-op. */
   public suspend fun clearCompleted()
 }
-
-public interface SettingsRepository {
-  public fun observeHideCompleted(): Flow<Boolean>
-
-  public suspend fun setHideCompleted(hide: Boolean)
-}
