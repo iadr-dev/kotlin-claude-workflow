@@ -427,9 +427,27 @@ and binary-compatibility-validator 0.18, plus the project's unit tests:
   when `verify { rule { ... } }` is defined. It is a per-project task, so each
   module that applies Kover runs its own. A variant task such as
   `koverVerifyDebug` is not attached; append it if the gate is variant-specific.
-- Android lint: `check` runs `lint` for the default variant only (`debug` when
-  there are no flavors). An error that exists only in `src/release` leaves `check`
-  green; append `lintRelease` (or another `lint<Variant>`) to cover other variants.
+  On an Android module with product flavors the total `koverVerify` merges **all**
+  variants, release included, while release unit tests are never run, so
+  release-only code counts as uncovered (a 60-function class that exists only in
+  `src/release` took a module to 1.6% in a test and failed the 60% bound).
+- Android lint: `check` runs lint for **one** variant only: the `debug` build type
+  of the first flavor in each dimension (alphabetical, or the flavor marked
+  `isDefault = true`). Without flavors that is `debug`; with a `tier` dimension of
+  `free` and `paid` it is `lintFreeDebug`, and plain `lint` is just an alias for it.
+  An error in `src/release`, in another flavor's source set (`src/paid`) or in any
+  other non-default variant leaves `check` green. Cover them by appending
+  `lint<Variant>` tasks, or make `check` depend on every variant's lint in each
+  Android module (tested; cost grows roughly with the number of variants):
+
+  ```kotlin
+  androidComponents {
+      onVariants { v -> tasks.named("check") { dependsOn("lint${v.name.replaceFirstChar(Char::uppercase)}") } }
+  }
+  ```
+- Unit tests: JVM `test`; on Android `check` runs the **debug** unit tests of every
+  flavor combination (`testFreeDebugUnitTest`, `testPaidDebugUnitTest`, ...) and no
+  release unit test, so there is no `testDebugUnitTest` once flavors exist.
 - API check (`apiCheck`, binary-compatibility-validator): attached to `check`.
   The Kotlin Gradle plugin's ABI validation (`checkKotlinAbi`) attaches the same way.
 
