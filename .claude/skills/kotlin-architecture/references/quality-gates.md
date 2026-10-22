@@ -128,7 +128,58 @@ depends on another `:feature:*` implementation and no `:core:*` depends on
 of type `ProjectDependency`. Plugins such as `com.autonomousapps.dependency-analysis`
 also report unused/misdeclared (`api` vs `implementation`) dependencies.
 
-## CI aggregate
+## CI template (GitHub Actions)
 
-`./gradlew spotlessCheck detekt lint koverVerify test apiCheck` (drop tasks the
-project doesn't apply). Run with configuration cache enabled.
+Save the block as `.github/workflows/ci.yml`. It derives from a workflow that
+ran green on `ubuntu-latest`, but this template itself has not been run end to
+end.
+
+What `./gradlew check` already runs, as of Kover 0.9, Android Gradle plugin 8/9
+and binary-compatibility-validator 0.18, plus the project's unit tests:
+
+- Spotless and detekt: attached to `check` by their plugins.
+- Kover `koverVerify`: attached for the total variant; it only gates something
+  when `verify { rule { ... } }` is defined. It is a per-project task, so each
+  module that applies Kover runs its own. A variant task such as
+  `koverVerifyDebug` is not attached; append it if the gate is variant-specific.
+- Android lint: `check` runs `lint` for the default variant only. Append
+  `lintRelease` (or another `lint<Variant>`) to cover other variants.
+- API check (`apiCheck`, binary-compatibility-validator): attached to `check`.
+  The Kotlin Gradle plugin's ABI validation (`checkKotlinAbi`) attaches the same way.
+
+So `./gradlew check` is the single default. The only optional appends are
+`assembleDebug` (Android packaging and resources), `lint<Variant>` and
+`koverVerify<Variant>`.
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main] # rename if your default branch differs
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # KMP: iOS tests need a macOS runner; Linux covers the JVM and Android targets.
+    runs-on: ubuntu-latest
+    # If the Gradle root is a subfolder, uncomment:
+    # defaults:
+    #   run:
+    #     working-directory: my-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17 # raise to your project's toolchain version
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Check
+        # Android: append assembleDebug to also catch packaging and resource
+        # errors (the Android SDK is already on ubuntu-latest).
+        run: ./gradlew check
+```

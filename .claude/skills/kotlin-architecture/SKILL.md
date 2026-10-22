@@ -156,7 +156,7 @@ finding to justify or fix, not an automatic rewrite.
 
 When the project lacks them, propose (don't silently add) the setup in
 `references/quality-gates.md`: Spotless + ktlint, detekt config, Kover,
-convention plugins, and the CI `check` aggregate. Ask before adding plugins.
+convention plugins, and the GitHub Actions CI template. Ask before adding plugins.
 
 ## 8. Folders, packages and file naming
 
