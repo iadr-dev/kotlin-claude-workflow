@@ -16,7 +16,9 @@ bash .claude/skills/setup-environment/scripts/check-env.sh .
 
 (`--offline` skips the latest-version lookups.) The script is read-only and
 prints one line per tool: `OK`, `UPDATE`, `OLD` (below minimum), `MISSING`
-(required), or `OPTIONAL`.
+(required), or `OPTIONAL`. Set `CHECK_ENV_PIN=gh,ktlint` (comma-separated,
+case-insensitive) to mark tools as pinned, so their `UPDATE` shows as `OK` with a
+`pinned:` note.
 
 Show the table to the user, then a short list of proposed actions:
 MISSING/OLD first, then UPDATE, then OPTIONAL. **[ask]** before installing or upgrading
