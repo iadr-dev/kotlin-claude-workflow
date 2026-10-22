@@ -278,7 +278,7 @@ work as intended in both: a 70-line composable and a 9-parameter composable are 
 flagged, while the same code in a plain function is. `MagicNumber` and
 `FunctionNaming` must be set `active: true` (as in the yaml above), otherwise they
 never fire and there is nothing to exempt. `LongParameterList` runs only in the
-typed detekt tasks (listed under "What `./gradlew check` already runs"), so plain
+typed detekt tasks (listed in the detekt bullet of the CI template section), so plain
 `detekt` misses it. `UnstableCollections` fires only with the opt-in block above. The Compose rules
 `ModifierMissing` and `MissingNonRestartableComposable` fire on small composables,
 but `ModifierMissing` can miss one that only emits `BasicText`.
