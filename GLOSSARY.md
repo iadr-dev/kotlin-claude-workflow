@@ -31,3 +31,13 @@ A tool the workflow can use but does not require is not installed.
 **Pinned tool**:
 A tool whose newer releases you have deliberately chosen not to be told about. The environment check reports it as OK instead of UPDATE, and still reports OLD, MISSING and OPTIONAL normally.
 _Avoid_: ignored tool, locked version, frozen tool (a pin does not lock a version)
+
+## CI template
+
+**SHA-pinned action**:
+A GitHub Actions step referenced by its full commit SHA with the version in a trailing comment (`uses: owner/action@<sha> # v4`), so the code that runs cannot change under the same reference. Unlike a Pinned tool, it does lock exactly what runs.
+_Avoid_: pinned action, locked action, frozen action
+
+**Tag-pinned action**:
+A GitHub Actions step referenced by a tag such as `@v4`. The tag can move, so what runs can change under the same reference.
+_Avoid_: floating action, unpinned action
