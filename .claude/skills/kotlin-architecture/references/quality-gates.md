@@ -131,8 +131,11 @@ also report unused/misdeclared (`api` vs `implementation`) dependencies.
 ## CI template (GitHub Actions)
 
 Save the block as `.github/workflows/ci.yml`. It derives from a workflow that
-ran green on `ubuntu-latest`, but this template itself has not been run end to
-end.
+ran green on `ubuntu-latest`. The template itself was run on GitHub Actions
+against a minimal Kotlin JVM project (Gradle 9.8.2, Temurin 17): `./gradlew check`
+compiled and ran the unit test and passed, and the job failed when the test was
+broken on purpose. It has not been run on an Android or Kotlin Multiplatform
+project, so the Android and KMP comments in the YAML are untested advice.
 
 What `./gradlew check` already runs, as of Kover 0.9, Android Gradle plugin 8/9
 and binary-compatibility-validator 0.18, plus the project's unit tests:
