@@ -66,13 +66,20 @@ Quick start above is for using this folder as it is. To add the workflow to a
 project you already have, copy it into that project's root. Everything is plain
 files, so the whole team gets it through git.
 
-**Option A: GitHub template (new project).** On the repository page choose
-*Use this template*, then adjust the build commands in `CLAUDE.md` to your modules.
+**Option A: clone it (new project).** This is a normal repository:
+
+```sh
+git clone https://github.com/iadr-dev/kotlin-claude-workflow.git my-project
+cd my-project
+```
+
+Then adjust the build commands in `CLAUDE.md` to your modules. To start with a
+fresh history, `rm -rf .git && git init`.
 
 **Option B: copy into an existing project** (Git Bash, macOS or Linux):
 
 ```sh
-git clone https://github.com/<owner>/kotlin-claude-workflow.git /tmp/kcw   # private repo: run `gh auth login` first
+git clone https://github.com/iadr-dev/kotlin-claude-workflow.git /tmp/kcw
 cd /path/to/your-project
 cp -r /tmp/kcw/.claude .
 cp /tmp/kcw/CLAUDE.md .
