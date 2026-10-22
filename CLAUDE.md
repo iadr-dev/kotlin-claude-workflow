@@ -36,7 +36,7 @@ Run all Gradle through the `gradle-run` skill. Typical tasks (scope to touched m
 ## Code rules
 
 - Architecture, modules, code standards, and metric thresholds: `kotlin-architecture` skill. Key rules: dependencies point inward (presentation → domain ← data), domain is pure Kotlin, `internal` by default, no feature→feature implementation dependencies, versions only in `gradle/libs.versions.toml`, shared build config in `build-logic` convention plugins.
-- Code-level Kotlin/Compose decisions: route through `kotlin-skill-router`.
+- Code-level Kotlin/Compose decisions: route through `kotlin-skill-router`. Any agent that writes or reviews Kotlin or Compose code, including delegated implementation workers and reviewers, loads it first and then the skill it names, before editing.
 - Android platform APIs: matching Android skill, and `android docs search "<query>"` (then `android docs fetch kb://...`) for current guidance. Library APIs: context7.
 - Every behavior change ships with tests. Don't report work as verified unless the task actually ran.
 

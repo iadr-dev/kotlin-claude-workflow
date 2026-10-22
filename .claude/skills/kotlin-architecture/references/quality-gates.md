@@ -196,6 +196,7 @@ style:
   ForbiddenComment:
     active: false
   MagicNumber:
+    active: true
     ignorePropertyDeclaration: true
     ignoreAnnotated: ['Composable', 'Preview']
   UnusedPrivateProperty:
@@ -218,6 +219,7 @@ coroutines:
 
 naming:
   FunctionNaming:
+    active: true
     ignoreAnnotated: ['Composable']
   MatchingDeclarationName:
     active: true
@@ -268,14 +270,34 @@ red on any Compose code until the root `.editorconfig` says so:
 ktlint_function_naming_ignore_when_annotated_with = Composable
 ```
 
-Tested on an Android app and library with AGP 9.4.1. The `ignoreAnnotated:
+Tested on an Android app and library with AGP 9.4.1, and on a Kotlin
+Multiplatform module with Compose Multiplatform 1.12.2 (JVM, Android and iOS
+targets declared; the iOS targets were not built). The `ignoreAnnotated:
 ['Composable']` entries are detekt's own mechanism (not the Compose rule set) and
-work as intended: a 70-line composable and a 9-parameter composable are not
-flagged, while the same code in a plain function is. `LongParameterList` runs only
-in the type-resolution tasks (`detektMain` on JVM, `detektDebug` and
-`detektRelease` on Android), so plain `detekt` misses it. The Compose rules
-`ModifierMissing` and `MissingNonRestartableComposable` also fire on tiny
-delegating composables.
+work as intended in both: a 70-line composable and a 9-parameter composable are not
+flagged, while the same code in a plain function is. `MagicNumber` and
+`FunctionNaming` must be set `active: true` (as in the yaml above), otherwise they
+never fire and there is nothing to exempt. `LongParameterList` runs only in the
+typed detekt tasks (listed in the detekt bullet of the CI template section), so plain
+`detekt` misses it. `UnstableCollections` fires only with the opt-in block above. The Compose rules
+`ModifierMissing` and `MissingNonRestartableComposable` fire on small composables,
+but `ModifierMissing` can miss one that only emits `BasicText`.
+
+Spotless caches lint results in `<module>/build/spotless-lints`, and that cache
+ignores `.editorconfig` changes. If `check` was already red on composable names,
+delete `build/spotless-lints` (or run `clean`) after adding the line above.
+
+**Kotlin Multiplatform.** No per-target setup: `detektPlugins(libs.detekt.composeRules)`
+in the module's build file loads the rules in every detekt task. The detekt plugin
+creates one untyped task per source set (`detektCommonMainSourceSet`,
+`detektJvmMainSourceSet`, `detektIosMainSourceSet`, ...) plus typed tasks
+(`detektMainJvm`, `detektTestJvm`, `detektMainAndroid`, `detektHostTestAndroid`),
+23 in the tested module, and the `dependsOn(tasks.withType<Detekt>())` line
+attaches all of them to `check`. Plain `detekt` has no sources on KMP and produces
+no report. `commonMain` code is analysed by `detektCommonMainSourceSet`,
+`detektMainJvm` and `detektMainAndroid`, so one violation can be reported up to
+three times. `InjectDispatcher`, `UnsafeCallOnNullableType` and `LongParameterList`
+run only in the typed tasks.
 
 ## Kover thresholds
 
@@ -296,6 +318,16 @@ Modules without the property get the default 60. Each module's `koverVerify`
 then enforces its own bound (verified: domain at 75% failed its 80 while data at
 75% passed its 70). `koverVerify` checks the line coverage of its own module, so
 it does not enforce "changed lines covered".
+
+On a Kotlin Multiplatform module the total `koverVerify` is attached to `check` and
+merges the JVM and Android variants (`koverVerifyJvm` and `koverVerifyAndroid` exist
+but are not attached); iOS and native code is not measured, and the
+`coverage.minLine` property works unchanged.
+
+On an Android module with product flavors the total `koverVerify` merges **all**
+variants, release included, while release unit tests are never run, so
+release-only code counts as uncovered; the `koverVerify<Variant>` tasks are not
+attached.
 
 An **overall** figure across modules needs a root project that aggregates them;
 per-module checks do not enforce it. The root must apply `base` first (otherwise
@@ -407,11 +439,13 @@ unused/misdeclared (`api` vs `implementation`) dependencies.
 
 Save the block as `.github/workflows/ci.yml`. It derives from a workflow that
 ran green on `ubuntu-latest`. The template itself was run on GitHub Actions
-against three small projects (Gradle 9.8.2, Temurin 17): a Kotlin JVM project
-(green with a passing test, red with a broken one), an Android app with two
-library modules (`./gradlew check assembleDebug`, about 2 minutes), and a Kotlin
-Multiplatform library (green on `ubuntu-latest` in about 1 minute and on
-`macos-latest` in about 3.5 minutes). Every action in the block is a SHA-pinned
+against three small projects (Gradle 9.8.2, Temurin 17), first with the `v4`
+actions and then again with the pins below, which went green on all three: a
+Kotlin JVM project (with the `v4` actions it also went red when a test was broken
+on purpose), an Android app with two library modules
+(`./gradlew check assembleDebug`, about 1.5 to 2 minutes), and a Kotlin
+Multiplatform library (about 1.5 minutes on `ubuntu-latest` and 4 to 7 minutes on
+`macos-latest` with a cold cache). Every action in the block is a SHA-pinned
 action; see the note after the block.
 
 What `./gradlew check` already runs, as of Kover 0.9, Android Gradle plugin 8/9
@@ -420,23 +454,40 @@ and binary-compatibility-validator 0.18, plus the project's unit tests:
 - Spotless: attached to `check` by its plugin.
 - detekt: the plain `detekt` task is attached, but the rules that need type
   resolution (`InjectDispatcher`, `UnsafeCallOnNullableType`) only run in
-  `detektMain` and `detektTest`, which are not attached by default. The
+  `detektMain` and `detektTest` (`detektDebug` and `detektRelease` on Android,
+  `detektMainJvm` and `detektMainAndroid` on KMP), which are not attached by default. The
   convention plugin above attaches them; without it, `check` stays green on a
   hard-coded `Dispatchers.IO` or a `!!` in main code.
 - Kover `koverVerify`: attached for the total variant; it only gates something
   when `verify { rule { ... } }` is defined. It is a per-project task, so each
   module that applies Kover runs its own. A variant task such as
   `koverVerifyDebug` is not attached; append it if the gate is variant-specific.
-- Android lint: `check` runs `lint` for the default variant only (`debug` when
-  there are no flavors). An error that exists only in `src/release` leaves `check`
-  green; append `lintRelease` (or another `lint<Variant>`) to cover other variants.
+  With Android product flavors, see "Kover thresholds" above.
+- Android lint: `check` runs lint for **one** variant only: the `debug` build type
+  of the first flavor in each dimension (alphabetical, or the flavor marked
+  `isDefault = true`). Without flavors that is `debug`; with a `tier` dimension of
+  `free` and `paid` it is `lintFreeDebug`, and plain `lint` is just an alias for it.
+  An error in `src/release`, in another flavor's source set (`src/paid`) or in any
+  other non-default variant leaves `check` green. Cover them by appending
+  `lint<Variant>` tasks, or make `check` depend on every variant's lint in each
+  Android module (tested; cost grows roughly with the number of variants):
+
+  ```kotlin
+  androidComponents {
+      onVariants { v -> tasks.named("check") { dependsOn("lint${v.name.replaceFirstChar(Char::uppercase)}") } }
+  }
+  ```
+- Unit tests: JVM `test`; on Android `check` runs the **debug** unit tests of every
+  flavor combination (`testFreeDebugUnitTest`, `testPaidDebugUnitTest`, ...) and no
+  release unit test, so there is no `testDebugUnitTest` once flavors exist.
 - API check (`apiCheck`, binary-compatibility-validator): attached to `check`.
   The Kotlin Gradle plugin's ABI validation (`checkKotlinAbi`) attaches the same way.
 
 So `./gradlew check` is the single default. The only optional appends are
 `assembleDebug` (Android dexing and packaging, for example a class defined in two
 modules; `check` already catches manifest and resource link errors),
-`lint<Variant>` and `koverVerify<Variant>`.
+`lint<Variant>` (unless you use the `androidComponents` snippet above) and
+`koverVerify<Variant>`.
 
 ```yaml
 name: CI
@@ -458,19 +509,21 @@ jobs:
     # kotlin.native.ignoreDisabledTargets=true in gradle.properties to silence it.
     # macos-latest is Apple Silicon, so iosX64Test is skipped there too; keep
     # iosSimulatorArm64(). For iOS coverage run a second job with
-    # `runs-on: macos-latest` (about 3.5 minutes against about 1 on Linux).
+    # `runs-on: macos-latest` (about 4 to 7 minutes cold, against about 1.5 on Linux).
     runs-on: ubuntu-latest
     # If the Gradle root is a subfolder, uncomment:
     # defaults:
     #   run:
     #     working-directory: my-app
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: 17 # raise to your project's toolchain version
-      - uses: gradle/actions/setup-gradle@48b5f213c81028ace310571dc5ec0fbbca0b2947 # v4
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic # open-source (MIT) caching; the default 'enhanced' provider is proprietary
       - name: Check
         # Android: append assembleDebug to also catch dexing and packaging errors
         # (for example duplicate classes); check already catches resource and
@@ -480,11 +533,56 @@ jobs:
 ```
 
 Pinning: every action is a SHA-pinned action, a full commit SHA with the version
-in a trailing comment (`uses: owner/action@<sha> # v4`), so the code that runs
+in a trailing comment (`uses: owner/action@<sha> # v7.0.1`), so the code that runs
 cannot change under the same reference. That is what SonarCloud
 (`githubactions:S7637`) and most supply-chain guidance expect, and it is one rule
-for first-party and third-party actions alike. The SHAs are the commits behind the
-`v4` tags that the template was tested with; newer majors exist (checkout v7,
-setup-java v6, setup-gradle v6) and need a re-test before the template moves to
-them. A Dependabot `github-actions` update can keep SHA pins current (not tested here). To use the readable Tag-pinned action form instead, replace
-each `@<sha> # v4` with `@v4`.
+for first-party and third-party actions alike. The pins are `actions/checkout`
+v7.0.1, `actions/setup-java` v6.1.0 and `gradle/actions/setup-gradle` v6.4.0, the
+latest releases when this was written, run green on a JVM, an Android and a KMP
+project with no warnings from any of the three actions. Things to know when you
+adopt or change them:
+
+- `actions/setup-java` v1 through v4 are deprecated upstream (its README says so); v5
+  and later also run on Node 24 and need a runner of version 2.327.1 or newer, per
+  their release notes (GitHub-hosted runners qualify; update self-hosted ones). v6 removed the legacy Adopt distributions, so
+  keep `distribution: temurin` (or another current vendor).
+- `setup-gradle` v6 has two cache providers. The default, `enhanced`, is a
+  proprietary component governed by Gradle's Terms of Use (free for public
+  repositories, a free preview for private ones). The template sets
+  `cache-provider: basic`, which is fully open source (MIT) and built on the standard
+  Actions cache, so nothing proprietary is involved. Delete the `with:` lines if you
+  want `enhanced`. With `basic` the first run finds nothing to restore, and pull
+  request runs from a branch are cache read-only. v5 is the last line without the choice.
+- To use the readable Tag-pinned action form instead, replace each
+  `@<sha> # vX.Y.Z` with the major tag (`@v7`, `@v6`).
+
+### Keeping the pins current (Dependabot)
+
+Nothing updates a SHA pin by itself. Commit this file as
+`.github/dependabot.yml` on the default branch and turn on "Dependabot version
+updates" in the repository's security settings:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"] # one pull request for all action updates
+    # Skip major versions (they then need a manual bump):
+    # ignore:
+    #   - dependency-name: "*"
+    #     update-types: ["version-update:semver-major"]
+```
+
+Per GitHub's documentation, Dependabot updates the version comment on the same
+line as a SHA (`actions/checkout@<commit> # v7.0.1`), so the comment form above is what
+it expects. Dependabot **security alerts do not cover SHA-pinned actions** (they
+only cover semantic-version references); version updates still do. Majors are not
+ignored by default on purpose: the pull request runs your CI before it merges, which
+is the re-test a new major needs. The `groups` behaviour and whether Dependabot
+opens pull requests for major bumps by default could not be tested here, because a
+Dependabot configuration only takes effect on a default branch.
