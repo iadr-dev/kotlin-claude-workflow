@@ -1,0 +1,5 @@
+complexity:
+  CyclomaticComplexMethod:
+    allowedComplexity: 15
+  LongMethod:
+    allowedLines: 60

@@ -1,0 +1,58 @@
+complexity:
+  CyclomaticComplexMethod:
+    threshold: 15
+    ignoreSimpleWhenEntries: true
+  CognitiveComplexMethod:
+    active: true
+    threshold: 15
+  LongMethod:
+    threshold: 60
+    ignoreAnnotated: ['Composable']
+  LargeClass:
+    threshold: 600
+  LongParameterList:
+    functionThreshold: 6
+    constructorThreshold: 7
+    ignoreDefaultParameters: true
+    ignoreAnnotated: ['Composable']
+  NestedBlockDepth:
+    threshold: 4
+  TooManyFunctions:
+    thresholdInClasses: 20
+    thresholdInFiles: 20
+    ignorePrivate: true
+
+style:
+  ForbiddenComment:
+    active: false
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreAnnotated: ['Composable', 'Preview']
+  UnusedPrivateMember:
+    active: true
+
+potential-bugs:
+  UnsafeCallOnNullableType:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/*Test.kt']
+
+coroutines:
+  GlobalCoroutineUsage:
+    active: true
+  InjectDispatcher:
+    active: true
+  RedundantSuspendModifier:
+    active: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+  MatchingDeclarationName:
+    active: true
+  InvalidPackageDeclaration:
+    active: true
+    rootPackage: 'com.example.app'
+    requireRootInDeclaration: true
+  ForbiddenClassName:
+    active: true
+    forbiddenName: ['*Manager', '*Helper', '*Util', '*Utils']
