@@ -319,7 +319,8 @@ clean-architecture Android sample app that was used to exercise the workflow and
 | `to-plan`, `deliver-spec`, `shepherd`, with CI, two independent reviews and a squash merge (issue #2 to PR #4) | tested on a real GitHub repository |
 | `/new-feature` and `/review-pr` | tested end to end when typed by the user (Claude is blocked from invoking them itself) |
 | `setup-issue-tracker`, `triage` (issues #8 and #9 triaged with agent briefs), `run-github-project` `review` and `setup` (binding for Project #2, validated live, merged in PR #12) | tested on a real repository and board |
-| `run-github-project` `next` and `drain` (executing board tickets), `wayfinder` | not yet tested (issues #8 and #9 wait in Backlog; a human moves them to Todo) |
+| `run-github-project` `next` (issue #8 to PR #15: claim, fast-path plan, implementation, independent review and repair, CI, merge, close, board to Done) | tested on a real repository and board |
+| `run-github-project` `drain`, `wayfinder` | not yet tested (issue #9 waits in Todo) |
 | Physical Android phone (Samsung, Android 15): install, launch, full UI flow, logs | tested |
 | macOS and Linux | not yet tested (scripts are written to be portable) |
 
