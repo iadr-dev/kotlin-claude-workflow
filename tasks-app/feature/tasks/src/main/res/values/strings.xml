@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="tasks_title">Tasks</string>
+    <string name="tasks_title_with_open">Tasks · %1$d open</string>
     <string name="tasks_new_task">New task</string>
     <string name="tasks_add">Add</string>
     <string name="tasks_hide_completed">Hide completed</string>

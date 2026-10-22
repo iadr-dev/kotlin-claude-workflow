@@ -116,6 +116,24 @@ class TasksViewModelTest {
   }
 
   @Test
+  fun openCountFollowsAddedAndCompletedTasks() = runTest {
+    backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+    assertEquals(1, content().openCount)
+
+    tasks.addTask("second")
+    assertEquals(2, content().openCount)
+
+    viewModel.onCompletedChange(id = 1, isCompleted = true)
+    assertEquals(1, content().openCount)
+
+    viewModel.onClearCompleted()
+    assertEquals(1, content().openCount)
+
+    viewModel.onCompletedChange(id = 2, isCompleted = true)
+    assertEquals(0, content().openCount)
+  }
+
+  @Test
   fun completedCountCountsCompletedTasksWhetherOrNotHidden() = runTest {
     backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
     viewModel.onCompletedChange(id = 1, isCompleted = true)
