@@ -141,7 +141,11 @@ pluginManagement {
 }
 ```
 
-Apply it in each module with `plugins { id("app.quality") }`. The root
+Apply it in each module with `plugins { id("app.quality") }`. Every module (and the
+root project when it aggregates, see "Kover thresholds") also needs
+`repositories { mavenCentral() }` for the Kotlin standard library and test
+dependencies; a shared `dependencyResolutionManagement { repositories { ... } }`
+block in `settings.gradle.kts` serves the same purpose. The root
 `build.gradle.kts` must declare the plugins once with `apply false`, otherwise
 every module loads its own copy of the Spotless and Kotlin classes and
 configuration fails (`Could not create task ':core:domain:spotlessKotlin' ...
@@ -306,6 +310,8 @@ plugins {
     alias(libs.plugins.kover)
 }
 
+repositories { mavenCentral() } // the Kover report resolves its tooling from here
+
 dependencies {
     kover(project(":core:domain"))
     kover(project(":core:data"))
@@ -316,7 +322,9 @@ kover { reports { verify { rule { minBound(60) } } } }
 ```
 
 The `apply false` lines are required for the same reason as above (without them
-configuration fails). The module dependency rule below needs the same root file,
+configuration fails), and the root project needs a repository as shown (without it
+the report fails with `Could not resolve all files for configuration
+':koverJvmReporter'`). The module dependency rule below needs the same root file,
 so keep everything in one `plugins` block and add that rule's task to it.
 
 ## Public API check (libraries)
