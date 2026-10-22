@@ -17,12 +17,6 @@ Read SDK paths, devices, and AVD names from the machine (`android info`,
 `adb devices -l`, `android emulator list`) — never hard-code them.
 iOS targets need macOS + Xcode; on Windows/Linux verify shared code with JVM tests.
 
-## Sample app
-
-`tasks-app/` is a small clean-architecture Android sample (`:app`, `:feature:tasks`,
-`:core:domain`, `:core:data`, `:core:testing`) used to exercise this workflow.
-Gradle root is `tasks-app/`; run `./gradlew` from there.
-
 ## Commands
 
 Run all Gradle through the `gradle-run` skill. Typical tasks (scope to touched modules):

@@ -35,7 +35,7 @@ triggers below.
 
 ## 2. Layout inside a module
 
-Grow into these shapes (the sample app stays flat) when the split triggers (section 4) fire.
+Grow into these shapes when the split triggers (section 4) fire.
 
 **Feature module (presentation)**
 
@@ -109,7 +109,7 @@ module.
   | UI state (with its item models and UI errors), events | `TasksUiState`, `TasksEvent` |
   | Use case (verb first) | `AddTaskUseCase`, `GetVisibleTasksUseCase` |
   | Repository interface (domain) | `TaskRepository` |
-  | Repository implementation | `DefaultTaskRepository` (this repo) or `TaskRepositoryImpl` |
+  | Repository implementation | `DefaultTaskRepository` or `TaskRepositoryImpl` |
   | Data source, DAO, stored record, DTO | `TaskLocalDataSource`, `TaskDao`, `TaskEntity` or `TaskRecord` (pick one), `TaskDto` |
   | Mapping | `toDomain()` / `toDto()` in `TaskMapping.kt` |
   | Fake / test | `FakeTaskRepository` / `TaskRepositoryTest` |
@@ -160,5 +160,5 @@ checks file names against a deny list), files in the wrong layer or module, two
 independent aggregates in one file, a package or folder past the split trigger,
 vague names, and tests that do not mirror their subject.
 
-The sample app in this repository is deliberately flat (far below the split
-triggers) and is not gated by detekt; adopt the templates in your own project.
+This workflow does not configure detekt for you; adopt the templates in your own
+project.

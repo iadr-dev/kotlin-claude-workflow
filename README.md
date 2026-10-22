@@ -27,7 +27,6 @@ It gives Claude, in one place:
 - [Architecture rules](#architecture-rules)
 - [GitHub and pull requests](#github-and-pull-requests)
 - [Project layout](#project-layout)
-- [Sample app](#sample-app)
 - [Status](#status)
 - [Troubleshooting](#troubleshooting)
 
@@ -68,8 +67,7 @@ project you already have, copy it into that project's root. Everything is plain
 files, so the whole team gets it through git.
 
 **Option A: GitHub template (new project).** On the repository page choose
-*Use this template*, then delete `tasks-app/` and the "Sample app" section of
-`CLAUDE.md`.
+*Use this template*, then adjust the build commands in `CLAUDE.md` to your modules.
 
 **Option B: copy into an existing project** (Git Bash, macOS or Linux):
 
@@ -85,8 +83,8 @@ rm -rf /tmp/kcw
 
 Then, in your project:
 
-1. Edit `CLAUDE.md`: delete the "Sample app" section and adjust the build commands to your modules.
-2. Do **not** copy `tasks-app/` or `.github/workflows/ci.yml`; the workflow file is written for the sample app, so write your own that runs your Gradle checks.
+1. Edit `CLAUDE.md`: adjust the build commands to your modules.
+2. Add CI that runs your Gradle checks on every pull request (for example `./gradlew test lint`); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
 3. Restart Claude Code in the project and accept the plugin prompts from `.claude/settings.json`.
 4. Ask Claude to run `setup-environment` and follow its proposals.
 5. Try it: `/new-feature <a small change>`.
@@ -290,24 +288,13 @@ CLAUDE.md                 project instructions Claude reads every session
   hooks/format-kotlin.sh  auto-format hook
   agents/                 review and verification agents
   skills/                 all skills listed above
-tasks-app/                small sample Android app used to exercise the workflow
-```
-
-## Sample app
-
-`tasks-app/` is a small clean-architecture Android app (`:app`, `:feature:tasks`,
-`:core:domain`, `:core:data`, `:core:testing`) that exists only to exercise this
-workflow. It is safe to delete; if you do, also remove the "Sample app" section
-from `CLAUDE.md`. Its Gradle root is `tasks-app/`:
-
-```sh
-cd tasks-app
-./gradlew :core:domain:test :core:data:test :feature:tasks:testDebugUnitTest :app:assembleDebug
 ```
 
 ## Status
 
-Checked on Windows 11 with Git Bash, Gradle 9.8.2, AGP 9.4.1, Kotlin 2.4.21:
+Checked on Windows 11 with Git Bash, Gradle 9.8.2, AGP 9.4.1, Kotlin 2.4.21, against a small
+clean-architecture Android sample app that was used to exercise the workflow and then removed
+(it stays in git history at commit `71988fc`, folder `tasks-app/`):
 
 | Area | State |
 |---|---|
@@ -315,9 +302,9 @@ Checked on Windows 11 with Git Bash, Gradle 9.8.2, AGP 9.4.1, Kotlin 2.4.21:
 | `kotlin-architecture`, Kotlin and Compose skills, `kotlin-reviewer` and the four review agents, `android-verifier` | tested (the new section 8 naming rules and the detekt templates have not been run) |
 | Format hook with ktlint, kotlin-lsp (symbols, cross-module definitions, hover) | tested |
 | `to-plan`, `deliver-spec`, `shepherd`, with CI, two independent reviews and a squash merge (issue #2 to PR #4) | tested on a real GitHub repository |
-| `/new-feature` and `/review-pr` | not yet tested: they only run when you type them, and Claude is blocked from invoking them itself |
+| `/new-feature` and `/review-pr` | tested end to end when typed by the user (Claude is blocked from invoking them itself) |
 | `run-github-project`, `triage`, `wayfinder`, `setup-issue-tracker` | not yet tested (user-invoked; need a GitHub Project board and labels) |
-| Physical Android device | not yet tested |
+| Physical Android phone (Samsung, Android 15): install, launch, full UI flow, logs | tested |
 | macOS and Linux | not yet tested (scripts are written to be portable) |
 
 ## Troubleshooting
