@@ -321,8 +321,8 @@ against three small projects (Gradle 9.8.2, Temurin 17): a Kotlin JVM project
 (green with a passing test, red with a broken one), an Android app with two
 library modules (`./gradlew check assembleDebug`, about 2 minutes), and a Kotlin
 Multiplatform library (green on `ubuntu-latest` in about 1 minute and on
-`macos-latest` in about 3.5 minutes). Third-party actions are pinned by tag; see
-the note after the block.
+`macos-latest` in about 3.5 minutes). Every action in the block is a SHA-pinned
+action; see the note after the block.
 
 What `./gradlew check` already runs, as of Kover 0.9, Android Gradle plugin 8/9
 and binary-compatibility-validator 0.18, plus the project's unit tests:
@@ -375,12 +375,12 @@ jobs:
     #   run:
     #     working-directory: my-app
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           distribution: temurin
           java-version: 17 # raise to your project's toolchain version
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@48b5f213c81028ace310571dc5ec0fbbca0b2947 # v4
       - name: Check
         # Android: append assembleDebug to also catch dexing and packaging errors
         # (for example duplicate classes); check already catches resource and
@@ -389,8 +389,13 @@ jobs:
         run: ./gradlew check
 ```
 
-Pinning: the block uses tags (`@v4`), which keeps it readable. SonarCloud
-(`githubactions:S7637`) and most supply-chain guidance want third-party actions,
-here `gradle/actions/setup-gradle`, pinned to a full commit SHA instead
-(`uses: gradle/actions/setup-gradle@<sha> # v4`). The first-party `actions/*`
-were not flagged. Use the SHA form if your repository has such a gate.
+Pinning: every action is a SHA-pinned action, a full commit SHA with the version
+in a trailing comment (`uses: owner/action@<sha> # v4`), so the code that runs
+cannot change under the same reference. That is what SonarCloud
+(`githubactions:S7637`) and most supply-chain guidance expect, and it is one rule
+for first-party and third-party actions alike. The SHAs are the commits behind the
+`v4` tags that the template was tested with; newer majors exist (checkout v7,
+setup-java v6, setup-gradle v6) and need a re-test before the template moves to
+them. A Dependabot `github-actions` update keeps SHA pins current and understands
+the `# v4` comment. To use the readable Tag-pinned action form instead, replace
+each `@<sha> # v4` with `@v4`.
