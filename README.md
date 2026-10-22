@@ -29,6 +29,7 @@ It gives Claude, in one place:
 - [Project layout](#project-layout)
 - [Status](#status)
 - [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ## Quick start
 
@@ -362,3 +363,7 @@ clean-architecture Android sample app that was used to exercise the workflow and
 | Wrapper upgrade exits with `9009` on Windows | Re-run once; the first pass rewrites the running `gradlew.bat` |
 | A tool shows `MISSING` or `UPDATE` | Run `setup-environment` and follow its proposals |
 | A tool is always `UPDATE` but you want to stay on its version | Set `CHECK_ENV_PIN=gh,ktlint` (comma-separated, case-insensitive); pinned tools show `OK` with a `pinned:` note |
+
+## License
+
+[MIT](LICENSE). Copyright (c) 2026 Ray Shen.

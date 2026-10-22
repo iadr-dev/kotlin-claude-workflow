@@ -16,11 +16,11 @@ case "$(uname -s)" in
   *) os=linux ;;
 esac
 
-fetch() { [ $offline = 1 ] && return 1; curl -fsSL --max-time 10 "$1" 2>/dev/null; }
+fetch() { [ $offline = 1 ] && return 1; curl -fsSL --proto '=https' --proto-redir '=https' --max-time 10 "$1" 2>/dev/null; }
 # Latest release tag via the redirect of /releases/latest (no API rate limit).
 gh_latest() {
   [ $offline = 1 ] && return 0
-  curl -fsSLI -o /dev/null -w '%{url_effective}' --max-time 10 "https://github.com/$1/releases/latest" 2>/dev/null \
+  curl -fsSLI --proto '=https' --proto-redir '=https' -o /dev/null -w '%{url_effective}' --max-time 10 "https://github.com/$1/releases/latest" 2>/dev/null \
     | sed -n 's#.*/tag/##p' | sed 's#^.*/##; s#^v##'
 }
 first_ver() { grep -oE '[0-9]+(\.[0-9]+)+' | head -n1; }
