@@ -8,13 +8,13 @@ Usage (from anywhere, needs the `claude` CLI on PATH):
     python3 docs/evals/run_skill_eval.py --fixture G1 G2 # worker briefs against a small Kotlin fixture
 
 Edits are blocked (Edit, Write, NotebookEdit, Agent denied); only read-only tools and `android docs`
-are allowed. Logs go to <tmp>/skill-eval/<run>/ . Results are printed as a table.
+are allowed. Each run gets a private temporary directory (tempfile.mkdtemp, mode 0700) that holds the
+logs and, with --fixture, the fixture project. Results are printed as a table.
 """
 import json, os, re, shutil, subprocess, sys, tempfile, time
 from concurrent.futures import ThreadPoolExecutor
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-TMP = os.path.join(tempfile.gettempdir(), "skill-eval")
 CLAUDE = shutil.which("claude")
 
 # id: (prompt, expected skills (any one is a hit), kind)
@@ -56,8 +56,10 @@ CASES = {
  "G2": ("You are the ticket owner of a delegated implementation task in an isolated worktree. The controller's packet says: \"Approved ticket: add an expandable FAQ item composable (title, animated expand/collapse of the answer) to the :core:designsystem module, with a screenshot-free unit/UI test. Obey the repository instructions. Own the worktree, branch and local commits only.\" Start the task.", {"compose-animations", "compose-component-design", "compose-ui-testing-patterns"}, "skill"),
 }
 
+# Read-only tools only. Prefix rules such as `git log:*` are NOT safe (git accepts abbreviated options
+# like --out=<file>, so a prefix rule can write files), hence exact forms for git.
 ALLOWED = ["Skill", "Read", "Grep", "Glob", "Bash(android docs:*)", "Bash(android --help:*)", "Bash(android help:*)",
-           "Bash(git status:*)", "Bash(git log:*)", "Bash(ls:*)"]
+           "Bash(git status)", "Bash(git status --short)", "Bash(ls:*)"]
 DENIED = ["Edit", "Write", "NotebookEdit", "Agent"]
 
 
@@ -135,11 +137,10 @@ def main(argv):
     use_fixture = "--fixture" in argv
     ids = [a for a in argv if not a.startswith("--")]
     cases = [(k, v) for k, v in CASES.items() if not ids or k in ids]
-    out = os.path.join(TMP, time.strftime("%Y%m%d-%H%M%S"))
-    os.makedirs(out)
+    out = tempfile.mkdtemp(prefix="skill-eval-")  # private (0700) and unpredictable
     repo = ROOT
     if use_fixture:
-        repo = os.path.join(TMP, "fixture")
+        repo = os.path.join(out, "fixture")
         build_fixture(repo)
     with ThreadPoolExecutor(max_workers=8) as ex:
         runs = dict(ex.map(run, [(k, v[0], repo, out) for k, v in cases]))
