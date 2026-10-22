@@ -92,7 +92,7 @@ rm -rf /tmp/kcw
 Then, in your project:
 
 1. Edit `CLAUDE.md`: adjust the build commands to your modules.
-2. Add CI that runs your Gradle checks on every pull request (see the [CI template (GitHub Actions)](.claude/skills/kotlin-architecture/references/quality-gates.md#ci-template-github-actions), which has not been run end to end); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
+2. Add CI that runs your Gradle checks on every pull request (see the [CI template (GitHub Actions)](.claude/skills/kotlin-architecture/references/quality-gates.md#ci-template-github-actions), which ran green on a minimal JVM project, not yet on Android or KMP); the PR skills use CI as their confirmation. This repository ships no workflow file because it contains no app to build.
 3. Restart Claude Code in the project and accept the plugin prompts from `.claude/settings.json`.
 4. Ask Claude to run `setup-environment` and follow its proposals.
 5. Try it: `/new-feature <a small change>`.
@@ -346,7 +346,7 @@ clean-architecture Android sample app that was used to exercise the workflow and
 | `run-github-project` `drain` (issue #9 to PR #17: claim, full `to-plan` plan, implementation, independent review and repair, CI, watcher wait at the merge gate, merge, close, board to Done) | tested on a real repository and board |
 | `wayfinder` (map issue #19: charting, three parallel research agents, resolving tickets, the live blocking gate) | tested on a real repository; working a human-in-the-loop `grilling` ticket is not yet tested |
 | `CHECK_ENV_PIN` (pinned tools in the environment check), `test_check_env.sh` with 22 cases | tested on Windows Git Bash only |
-| The CI template (GitHub Actions) in `quality-gates.md` | checked with `actionlint` and against the earlier proven workflow, never run end to end |
+| The CI template (GitHub Actions) in `quality-gates.md` | run on GitHub Actions against a minimal Kotlin JVM project: green with a passing test, red with a broken one; not run on Android or KMP |
 | Physical Android phone (Samsung, Android 15): install, launch, full UI flow, logs | tested |
 | macOS and Linux | not yet tested (scripts are written to be portable) |
 
