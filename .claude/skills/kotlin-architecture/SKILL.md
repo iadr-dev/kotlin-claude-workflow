@@ -146,6 +146,7 @@ type are listed in the detekt bullet of its CI template section).
 - **Compose**: stable UI state models (immutable, `@Immutable`/`@Stable` only when true); defer to `compose-performance` for diagnosis.
 - **Coroutines**: inject dispatchers (never hard-code `Dispatchers.IO` in classes); defer to `kotlin-concurrency-and-flow`.
 - **Data**: paging for unbounded lists, caching policy defined in repositories, DB queries off main thread and indexed. Network clients set explicit timeouts; retries use bounded backoff and only wrap operations that are safe to run twice.
+- **Database migrations**: never edit a migration that has shipped. Every schema version bump ships with a migration and a test that upgrades from the previous schema: Room with `exportSchema` on, the exported schema directory committed and a `MigrationTestHelper` test; SQLDelight with a `schemaOutputDirectory`, the committed `.db` files and `verifyMigrations` on, so `verifySqlDelightMigration` runs in `check`. `fallbackToDestructiveMigration` in a released app wipes user data; it needs the person's explicit approval.
 - **JVM server**: non-blocking I/O in Ktor handlers, connection pools sized explicitly, no N+1 queries.
 - **Build performance**: configuration cache + build cache on, convention plugins, no `allprojects {}` / cross-project configuration, KSP over kapt.
 - Measure before optimizing: Macrobenchmark / `android-profiler` skill on Android, JMH or load tests on JVM.
