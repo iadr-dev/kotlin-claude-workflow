@@ -111,6 +111,10 @@ Rules:
 - No `!!` outside tests; no `lateinit` for values that can be constructor parameters; no `GlobalScope`; no mutable public state (`MutableStateFlow` exposed publicly).
 - Immutability first: `val`, read-only collections, `data class` copies for state.
 - Public APIs get KDoc when the behavior is not obvious from the name and types.
+- Reuse before writing: search the modules for an existing function, type or mapper that already does the job and name what was reused. Extract duplicated logic on the third copy (on the second when both must change together); keep look-alike code separate when the copies change for different reasons.
+- A new library or Gradle plugin is the person's decision: first check the Kotlin standard library and existing dependencies, then name the addition and its reason in the report. Never add one silently.
+- Every `@Suppress(...)` and every detekt/lint baseline entry carries an inline reason and is named in the report.
+- No secrets in source, `BuildConfig` or committed files. Tokens are stored encrypted with a key from the Android Keystore, never in plain preferences or DataStore. Logs carry no tokens or personal data, and an error is logged once, where it is handled.
 
 ## 4. Quality metrics and thresholds
 
@@ -141,7 +145,8 @@ type are listed in the detekt bullet of its CI template section).
 - **Android startup/runtime**: Baseline Profiles (`:baselineprofile` module), R8 full mode in release (`r8-analyzer` skill for keep rules), lazy DI for heavy graphs, no disk/network on main thread (StrictMode in debug).
 - **Compose**: stable UI state models (immutable, `@Immutable`/`@Stable` only when true); defer to `compose-performance` for diagnosis.
 - **Coroutines**: inject dispatchers (never hard-code `Dispatchers.IO` in classes); defer to `kotlin-concurrency-and-flow`.
-- **Data**: paging for unbounded lists, caching policy defined in repositories, DB queries off main thread and indexed.
+- **Data**: paging for unbounded lists, caching policy defined in repositories, DB queries off main thread and indexed. Network clients set explicit timeouts; retries use bounded backoff and only wrap operations that are safe to run twice.
+- **Database migrations**: never edit a migration that has shipped. Every schema version bump ships with a migration and a test that upgrades from the previous schema: Room with `exportSchema` on, the exported schema directory committed and a `MigrationTestHelper` test; SQLDelight with a `schemaOutputDirectory`, the committed `.db` files and `verifyMigrations` on, so `verifySqlDelightMigration` runs in `check`. `fallbackToDestructiveMigration` in a released app wipes user data; it needs the person's explicit approval.
 - **JVM server**: non-blocking I/O in Ktor handlers, connection pools sized explicitly, no N+1 queries.
 - **Build performance**: configuration cache + build cache on, convention plugins, no `allprojects {}` / cross-project configuration, KSP over kapt.
 - Measure before optimizing: Macrobenchmark / `android-profiler` skill on Android, JMH or load tests on JVM.

@@ -35,6 +35,10 @@ Only issues you can defend with a concrete failure scenario:
 - Structure and naming (`kotlin-architecture` §8): package not matching its directory, file named after the wrong type, two independent aggregates in one file, `Utils.kt`/`Helpers.kt` file names and `Manager`/`Helper` class names, a package or folder past ~15 files, tests not mirroring their subject, files placed in the wrong layer or module.
 - Maintainability metrics: touched functions/classes over the `kotlin-architecture` §4 thresholds (complexity, length, parameters, nesting) — cite the measured value.
 - Performance: main-thread I/O, unstable Compose state models, hard-coded dispatchers, unbounded lists without paging, N+1 queries.
+- Duplication and dependencies (`kotlin-architecture` §3): new code that re-implements an existing function, mapper or type; a third copy of the same logic; a new library or plugin added without being named; `@Suppress` or baseline entries without a reason.
+- Database migrations (`kotlin-architecture` §5): an entity, table or `.sq` change without a version bump and migration; an edited migration that has shipped; a migration without an upgrade test; `fallbackToDestructiveMigration` added without approval.
+- Security and logging: secrets in source, `BuildConfig` or committed files; tokens in plain preferences or DataStore; tokens or personal data in logs; the same error logged at several layers.
+- UI: user-facing text not from string resources; icons and images that convey meaning with no `contentDescription`; interactive elements under 48 dp; data-fetching screens without loading, empty and error states; permissions requested before the feature needs them.
 
 Skip pure style that a formatter would fix.
 
